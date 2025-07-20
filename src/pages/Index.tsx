@@ -1,116 +1,151 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { FileText, Users, Calendar, DollarSign, BarChart3, Settings } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Church, Users, Calendar, DollarSign, BarChart3, LogOut } from 'lucide-react';
 
-const Index = () => {
-  const navigate = useNavigate();
+export default function Index() {
+  const { user, signOut, userRole } = useAuth();
 
-  const features = [
-    {
-      title: "Data Entry Forms",
-      description: "Member registration, attendance tracking, donations, and events",
-      icon: FileText,
-      path: "/forms",
-      color: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
-    },
-    {
-      title: "Member Management",
-      description: "Manage church member directory and profiles",
-      icon: Users,
-      path: "/members",
-      color: "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300",
-    },
-    {
-      title: "Event Calendar",
-      description: "Schedule and manage church events and activities",
-      icon: Calendar,
-      path: "/calendar",
-      color: "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300",
-    },
-    {
-      title: "Financial Management",
-      description: "Track donations, expenses, and financial reports",
-      icon: DollarSign,
-      path: "/finance",
-      color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300",
-    },
-    {
-      title: "Reports & Analytics",
-      description: "Generate insights and reports for church leadership",
-      icon: BarChart3,
-      path: "/reports",
-      color: "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300",
-    },
-    {
-      title: "Settings",
-      description: "Configure church settings and user permissions",
-      icon: Settings,
-      path: "/settings",
-      color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
-    },
-  ];
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Church Management System</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Streamline your church operations with our comprehensive management platform. 
-            Track members, manage events, handle finances, and generate insightful reports.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {features.map((feature) => {
-            const IconComponent = feature.icon;
-            return (
-              <Card 
-                key={feature.title} 
-                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-                onClick={() => navigate(feature.path)}
-              >
-                <CardHeader className="text-center pb-2">
-                  <div className={`mx-auto mb-4 w-16 h-16 rounded-xl flex items-center justify-center ${feature.color}`}>
-                    <IconComponent className="h-8 w-8" />
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center pt-0">
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {feature.description}
-                  </p>
-                  <Button variant="outline" className="w-full">
-                    Open
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <div className="text-center">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-xl">Quick Start</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                onClick={() => navigate("/forms")} 
-                className="w-full"
-              >
-                Start with Data Entry Forms
-              </Button>
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card/50 backdrop-blur">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Church className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-bold">Church Management System</h1>
               <p className="text-sm text-muted-foreground">
-                Begin by entering church member information, recording attendance, or logging donations.
+                Welcome back, {user?.user_metadata?.first_name || user?.email}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">
+              {userRole}
+            </span>
+            <Button variant="outline" onClick={handleSignOut} size="sm">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Active church members
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Month's Tithes</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$0</div>
+              <p className="text-xs text-muted-foreground">
+                Total contributions this month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Events scheduled this week
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0%</div>
+              <p className="text-xs text-muted-foreground">
+                Average attendance this month
               </p>
             </CardContent>
           </Card>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks for church management</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {userRole === 'admin' || userRole === 'pastor' ? (
+                <>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Members
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Record Contribution
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Schedule Event
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    View Reports
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button className="w-full justify-start" variant="outline">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Make Contribution
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    View Events
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>Latest updates in your church</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No recent activity to display</p>
+                <p className="text-sm">Activity will appear here as you use the system</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   );
-};
-
-export default Index;
+}
