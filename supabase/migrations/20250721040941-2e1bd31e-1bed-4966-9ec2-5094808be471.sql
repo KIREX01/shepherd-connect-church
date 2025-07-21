@@ -1,4 +1,4 @@
--- Update the handle_new_user function to use role from metadata
+-- Fix the handle_new_user function - remove the double ::app_role cast
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
