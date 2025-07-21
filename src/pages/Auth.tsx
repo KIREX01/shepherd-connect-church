@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Church } from 'lucide-react';
 
@@ -14,6 +15,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [role, setRole] = useState<'member' | 'pastor' | 'admin'>('member');
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -46,7 +48,7 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(email, password, firstName, lastName);
+    const { error } = await signUp(email, password, firstName, lastName, role);
 
     if (error) {
       toast({
@@ -156,6 +158,19 @@ export default function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={role} onValueChange={(value: 'member' | 'pastor' | 'admin') => setRole(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="pastor">Pastor</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Sign Up"}
