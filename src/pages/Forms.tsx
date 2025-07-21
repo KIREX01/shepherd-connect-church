@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Navbar } from "@/components/Navbar";
 import { MemberRegistrationForm } from "@/components/forms/MemberRegistrationForm";
 import { AttendanceEntryForm } from "@/components/forms/AttendanceEntryForm";
 import { DonationEntryForm } from "@/components/forms/DonationEntryForm";
@@ -62,8 +63,9 @@ const Forms = () => {
     if (form) {
       const FormComponent = form.component;
       return (
-        <div className="min-h-screen bg-background p-4">
-          <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-background">
+          <Navbar />
+          <div className="max-w-4xl mx-auto p-4">
             <Button
               variant="ghost"
               onClick={() => setSelectedForm(null)}
@@ -80,8 +82,9 @@ const Forms = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="max-w-6xl mx-auto p-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Church Data Entry Forms</h1>
           <p className="text-xl text-muted-foreground">

@@ -1,39 +1,16 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Church, Users, Calendar, DollarSign, BarChart3, LogOut } from 'lucide-react';
+import { Navbar } from '@/components/Navbar';
+import { Church, Users, Calendar, DollarSign, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Index() {
-  const { user, signOut, userRole } = useAuth();
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
+  const { userRole } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/50 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Church className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">Church Management System</h1>
-              <p className="text-sm text-muted-foreground">
-                Welcome back, {user?.user_metadata?.first_name || user?.email}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">
-              {userRole}
-            </span>
-            <Button variant="outline" onClick={handleSignOut} size="sm">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -99,33 +76,45 @@ export default function Index() {
             <CardContent className="space-y-3">
               {userRole === 'admin' || userRole === 'pastor' ? (
                 <>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage Members
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Record Contribution
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule Event
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    View Reports
-                  </Button>
+                  <Link to="/forms">
+                    <Button className="w-full justify-start" variant="outline">
+                      <Users className="h-4 w-4 mr-2" />
+                      Manage Members
+                    </Button>
+                  </Link>
+                  <Link to="/forms">
+                    <Button className="w-full justify-start" variant="outline">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Record Contribution
+                    </Button>
+                  </Link>
+                  <Link to="/forms">
+                    <Button className="w-full justify-start" variant="outline">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Schedule Event
+                    </Button>
+                  </Link>
+                  <Link to="/forms">
+                    <Button className="w-full justify-start" variant="outline">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      View Reports
+                    </Button>
+                  </Link>
                 </>
               ) : (
                 <>
-                  <Button className="w-full justify-start" variant="outline">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Make Contribution
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    View Events
-                  </Button>
+                  <Link to="/forms">
+                    <Button className="w-full justify-start" variant="outline">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Make Contribution
+                    </Button>
+                  </Link>
+                  <Link to="/forms">
+                    <Button className="w-full justify-start" variant="outline">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      View Events
+                    </Button>
+                  </Link>
                 </>
               )}
             </CardContent>
