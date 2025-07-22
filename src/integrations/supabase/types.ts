@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          attended: boolean
+          event_id: string
+          id: string
+          recorded_at: string
+          recorded_by: string
+          user_id: string
+        }
+        Insert: {
+          attended?: boolean
+          event_id: string
+          id?: string
+          recorded_at?: string
+          recorded_by: string
+          user_id: string
+        }
+        Update: {
+          attended?: boolean
+          event_id?: string
+          id?: string
+          recorded_at?: string
+          recorded_by?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contributions: {
+        Row: {
+          amount: number
+          contribution_date: string
+          contribution_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          recorded_by: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contribution_date?: string
+          contribution_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_by: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contribution_date?: string
+          contribution_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          id: string
+          location: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          id?: string
+          location?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          location?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
