@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +77,12 @@ export default function Index() {
             <CardContent className="space-y-3">
               {userRole === 'admin' || userRole === 'pastor' ? (
                 <>
+                  <Link to="/members">
+                    <Button className="w-full justify-start" variant="outline">
+                      <Users className="h-4 w-4 mr-2" />
+                      View Members
+                    </Button>
+                  </Link>
                   <Link to="/forms">
                     <Button className="w-full justify-start" variant="outline">
                       <Users className="h-4 w-4 mr-2" />

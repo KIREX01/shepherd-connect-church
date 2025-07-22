@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home } from 'lucide-react';
@@ -50,6 +51,19 @@ export function Navbar() {
                   <span>Forms</span>
                 </Button>
               </Link>
+
+              {(userRole === 'admin' || userRole === 'pastor') && (
+                <Link to="/members">
+                  <Button 
+                    variant={isActive('/members') ? 'default' : 'ghost'} 
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Members</span>
+                  </Button>
+                </Link>
+              )}
             </div>
 
             <div className="flex items-center space-x-4">
