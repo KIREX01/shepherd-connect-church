@@ -19,9 +19,7 @@ interface MemberProfile {
   date_of_birth: string | null;
   membership_date: string | null;
   created_at: string;
-  user_roles: {
-    role: string;
-  }[];
+  roles: string[];
 }
 
 export default function Members() {
@@ -31,29 +29,42 @@ export default function Members() {
     queryKey: ['members'],
     queryFn: async () => {
       console.log('Fetching members...');
-      const { data, error } = await supabase
+      
+      // First get all profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          user_id,
-          first_name,
-          last_name,
-          phone,
-          address,
-          date_of_birth,
-          membership_date,
-          created_at,
-          user_roles!inner(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching members:', error);
-        throw error;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
       }
 
-      console.log('Fetched members:', data);
-      return data as MemberProfile[];
+      // Then get all user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        throw rolesError;
+      }
+
+      // Combine the data
+      const membersWithRoles = profiles.map(profile => {
+        const roles = userRoles
+          .filter(role => role.user_id === profile.user_id)
+          .map(role => role.role);
+        
+        return {
+          ...profile,
+          roles
+        };
+      });
+
+      console.log('Fetched members:', membersWithRoles);
+      return membersWithRoles as MemberProfile[];
     },
     enabled: userRole === 'admin' || userRole === 'pastor',
   });
@@ -153,7 +164,7 @@ export default function Members() {
                   <div>
                     <p className="text-sm font-medium">Roles</p>
                     <p className="text-2xl font-bold">
-                      {new Set(members?.flatMap(m => m.user_roles.map(r => r.role))).size || 0}
+                      {new Set(members?.flatMap(m => m.roles)).size || 0}
                     </p>
                   </div>
                 </div>
@@ -203,13 +214,13 @@ export default function Members() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {member.user_roles.map((roleObj, index) => (
+                            {member.roles.map((role, index) => (
                               <Badge 
                                 key={index} 
-                                variant={roleObj.role === 'admin' ? 'default' : 'secondary'}
+                                variant={role === 'admin' ? 'default' : 'secondary'}
                                 className="capitalize"
                               >
-                                {roleObj.role}
+                                {role}
                               </Badge>
                             ))}
                           </div>
