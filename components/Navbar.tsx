@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -20,6 +20,7 @@ import type { Database } from "@/types/supabase"
 
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClientComponentClient<Database>()
   const { toast } = useToast()
   const [user, setUser] = useState<User | null>(null)
@@ -59,24 +60,28 @@ export default function Navbar() {
     }
   }
 
+  const navLinks = [
+    { href: "/", label: "Dashboard" },
+    { href: "/members", label: "Members" },
+    { href: "/forms", label: "Forms" },
+    { href: "/records", label: "Records" },
+  ]
+
   return (
     <nav className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
       <Link href="/" className="text-xl font-bold">
         Shepherd Connect
       </Link>
       <div className="flex items-center space-x-4">
-        <Link href="/" className="hover:underline">
-          Dashboard
-        </Link>
-        <Link href="/members" className="hover:underline">
-          Members
-        </Link>
-        <Link href="/forms" className="hover:underline">
-          Forms
-        </Link>
-        <Link href="/records" className="hover:underline">
-          Records
-        </Link>
+        {navLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`hover:underline ${pathname === link.href ? "font-semibold" : ""}`}
+          >
+            {link.label}
+          </Link>
+        ))}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

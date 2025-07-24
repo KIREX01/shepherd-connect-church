@@ -5,22 +5,22 @@ export type Database = {
     Tables: {
       attendance: {
         Row: {
-          event_id: string
+          created_at: string
+          event_id: string | null
           id: string
-          member_id: string
-          timestamp: string
+          member_id: string | null
         }
         Insert: {
-          event_id: string
+          created_at?: string
+          event_id?: string | null
           id?: string
-          member_id: string
-          timestamp?: string
+          member_id?: string | null
         }
         Update: {
-          event_id?: string
+          created_at?: string
+          event_id?: string | null
           id?: string
-          member_id?: string
-          timestamp?: string
+          member_id?: string | null
         }
         Relationships: [
           {
@@ -41,28 +41,28 @@ export type Database = {
       }
       donations: {
         Row: {
-          amount: number
-          date: string
+          amount: number | null
+          created_at: string
           id: string
           member_id: string | null
           notes: string | null
-          type: string
+          type: string | null
         }
         Insert: {
-          amount: number
-          date?: string
+          amount?: number | null
+          created_at?: string
           id?: string
           member_id?: string | null
           notes?: string | null
-          type: string
+          type?: string | null
         }
         Update: {
-          amount?: number
-          date?: string
+          amount?: number | null
+          created_at?: string
           id?: string
           member_id?: string | null
           notes?: string | null
-          type?: string
+          type?: string | null
         }
         Relationships: [
           {
@@ -76,168 +76,109 @@ export type Database = {
       }
       events: {
         Row: {
-          date: string
+          created_at: string
+          date: string | null
           description: string | null
           id: string
-          location: string
-          name: string
-          time: string
+          location: string | null
+          name: string | null
+          time: string | null
         }
         Insert: {
-          date: string
+          created_at?: string
+          date?: string | null
           description?: string | null
           id?: string
-          location: string
-          name: string
-          time: string
+          location?: string | null
+          name?: string | null
+          time?: string | null
         }
         Update: {
-          date?: string
+          created_at?: string
+          date?: string | null
           description?: string | null
           id?: string
-          location?: string
-          name?: string
-          time?: string
+          location?: string | null
+          name?: string | null
+          time?: string | null
         }
         Relationships: []
       }
       members: {
         Row: {
           address: string | null
-          email: string
-          first_name: string
+          created_at: string
+          email: string | null
+          first_name: string | null
           id: string
-          last_name: string
+          last_name: string | null
           phone: string | null
-          role: string
-          user_id: string | null
+          role: string | null
         }
         Insert: {
           address?: string | null
-          email: string
-          first_name: string
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
           id?: string
-          last_name: string
+          last_name?: string | null
           phone?: string | null
-          role?: string
-          user_id?: string | null
+          role?: string | null
         }
         Update: {
           address?: string | null
-          email?: string
-          first_name?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
           id?: string
-          last_name?: string
+          last_name?: string | null
           phone?: string | null
-          role?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ministries: {
-        Row: {
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          description?: string | null
-          id?: string
-          name?: string
+          role?: string | null
         }
         Relationships: []
       }
-      registrations: {
+      ministries: {
         Row: {
-          event_id: string
+          created_at: string
+          description: string | null
           id: string
-          member_id: string
-          registration_date: string
+          name: string | null
         }
         Insert: {
-          event_id: string
+          created_at?: string
+          description?: string | null
           id?: string
-          member_id: string
-          registration_date?: string
+          name?: string | null
         }
         Update: {
-          event_id?: string
+          created_at?: string
+          description?: string | null
           id?: string
-          member_id?: string
-          registration_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "registrations_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "registrations_member_id_fkey"
-            columns: ["member_id"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sermons: {
-        Row: {
-          date: string
-          id: string
-          speaker: string
-          title: string
-          url: string | null
-        }
-        Insert: {
-          date?: string
-          id?: string
-          speaker: string
-          title: string
-          url?: string | null
-        }
-        Update: {
-          date?: string
-          id?: string
-          speaker?: string
-          title?: string
-          url?: string | null
+          name?: string | null
         }
         Relationships: []
       }
       volunteers: {
         Row: {
-          event_id: string
+          created_at: string
+          event_id: string | null
           id: string
-          member_id: string
-          role: string
+          member_id: string | null
+          role: string | null
         }
         Insert: {
-          event_id: string
+          created_at?: string
+          event_id?: string | null
           id?: string
-          member_id: string
-          role: string
+          member_id?: string | null
+          role?: string | null
         }
         Update: {
-          event_id?: string
+          created_at?: string
+          event_id?: string | null
           id?: string
-          member_id?: string
-          role?: string
+          member_id?: string | null
+          role?: string | null
         }
         Relationships: [
           {
@@ -274,63 +215,6 @@ export type Database = {
 
 type PublicSchema = Database[Extract<keyof Database, "public">]
 
-export type Tables<
-  PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] & PublicSchema["Views"]) | { schema: keyof Database },
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]] & {
-      Tables: {
-        [K in keyof (Database[PublicTableNameOrOptions["schema"]] &
-          PublicSchema["Tables"])["Tables"]]: (Database[PublicTableNameOrOptions["schema"]] &
-          PublicSchema["Tables"])["Tables"][K] extends {
-          Row: infer R
-        }
-          ? R
-          : never
-      }
-      Views: {
-        [K in keyof (Database[PublicTableNameOrOptions["schema"]] &
-          PublicSchema["Views"])["Views"]]: (Database[PublicTableNameOrOptions["schema"]] &
-          PublicSchema["Views"])["Views"][K] extends {
-          Row: infer R
-        }
-          ? R
-          : never
-      }
-    })[keyof (Database[PublicTableNameOrOptions["schema"]] & PublicSchema["Tables"])]
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    ? (PublicSchema["Tables"] & PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+export type Tables<TableName extends keyof PublicSchema["Tables"]> = PublicSchema["Tables"][TableName]["Row"]
 
-export type TablesInsert<PublicTableNameOrOptions extends keyof PublicSchema["Tables"] | { schema: keyof Database }> =
-  PublicTableNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][Extract<
-        keyof Database[PublicTableNameOrOptions["schema"]]["Tables"],
-        PublicTableNameOrOptions["table"]
-      >]["Insert"]
-    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-      ? PublicSchema["Tables"][PublicTableNameOrOptions]["Insert"]
-      : never
-
-export type TablesUpdate<PublicTableNameOrOptions extends keyof PublicSchema["Tables"] | { schema: keyof Database }> =
-  PublicTableNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][Extract<
-        keyof Database[PublicTableNameOrOptions["schema"]]["Tables"],
-        PublicTableNameOrOptions["table"]
-      >]["Update"]
-    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-      ? PublicSchema["Tables"][PublicTableNameOrOptions]["Update"]
-      : never
-
-export type Enums<PublicEnumNameOrOptions extends keyof PublicSchema["Enums"] | { schema: keyof Database }> =
-  PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][Extract<
-        keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"],
-        PublicEnumNameOrOptions["enum"]
-      >]
-    : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-      ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-      : never
+export type Enums<EnumName extends keyof PublicSchema["Enums"]> = PublicSchema["Enums"][EnumName]

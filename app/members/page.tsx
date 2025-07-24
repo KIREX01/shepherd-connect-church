@@ -1,30 +1,25 @@
-import { createServerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
-import type { Database } from "@/types/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/supabase"
 
-export default async function MembersPage() {
-  const cookieStore = cookies()
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-        set: (name: string, value: string, options: any) => cookieStore.set(name, value, options),
-        remove: (name: string, options: any) => cookieStore.set(name, "", options),
-      },
-    },
-  )
+// Server-side Supabase client for data fetching
+const supabaseAdmin = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+)
 
-  const { data: members, error } = await supabase.from("members").select("*").order("last_name", { ascending: true })
-
+async function getMembers() {
+  const { data, error } = await supabaseAdmin.from("members").select("*").order("first_name")
   if (error) {
     console.error("Error fetching members:", error)
-    return <p>Error loading members.</p>
+    return []
   }
+  return data
+}
+
+export default async function MembersPage() {
+  const members = await getMembers()
 
   return (
     <Card>
@@ -35,7 +30,8 @@ export default async function MembersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>First Name</TableHead>
+              <TableHead>Last Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Role</TableHead>
@@ -44,14 +40,11 @@ export default async function MembersPage() {
           <TableBody>
             {members.map((member) => (
               <TableRow key={member.id}>
-                <TableCell>
-                  {member.first_name} {member.last_name}
-                </TableCell>
+                <TableCell>{member.first_name}</TableCell>
+                <TableCell>{member.last_name}</TableCell>
                 <TableCell>{member.email}</TableCell>
-                <TableCell>{member.phone || "N/A"}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{member.role}</Badge>
-                </TableCell>
+                <TableCell>{member.phone}</TableCell>
+                <TableCell>{member.role}</TableCell>
               </TableRow>
             ))}
           </TableBody>

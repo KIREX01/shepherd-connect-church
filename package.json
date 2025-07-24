@@ -30,17 +30,17 @@
     "@radix-ui/react-scroll-area": "latest",
     "@radix-ui/react-select": "latest",
     "@radix-ui/react-separator": "latest",
-    "@radix-ui/react-sheet": "^1.0.4",
     "@radix-ui/react-slider": "latest",
     "@radix-ui/react-slot": "latest",
     "@radix-ui/react-switch": "latest",
     "@radix-ui/react-tabs": "latest",
-    "@radix-ui/react-textarea": "^1.0.4",
     "@radix-ui/react-toast": "latest",
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
+    "@supabase/auth-ui-react": "latest",
+    "@supabase/auth-ui-shared": "latest",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "@tanstack/react-query": "latest",
@@ -68,17 +68,16 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript-eslint": "latest",
     "vaul": "latest",
-    "zod": "^3.22.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "15.0.3",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.3",
     "postcss": "^8.5",
-    "tailwindcss": "^3.4.0",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
 }

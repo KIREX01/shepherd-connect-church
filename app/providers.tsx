@@ -4,7 +4,8 @@ import type React from "react"
 import { ThemeProvider as NextThemesProvider, type ThemeProviderProps } from "next-themes"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase } from "@/lib/supabase"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/types/supabase"
 
 interface AuthContextType {
   user: User | null
@@ -29,6 +30,7 @@ export const useAuth = () => {
 export function Providers({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
     // Get initial session
@@ -46,7 +48,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const signOut = async () => {
     await supabase.auth.signOut()
@@ -54,7 +56,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, signOut }}>
-      <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        {children}
+      </ThemeProvider>
     </AuthContext.Provider>
   )
 }

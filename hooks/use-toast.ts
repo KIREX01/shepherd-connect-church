@@ -107,6 +107,12 @@ export const reducer = (state: State, action: Action): State => {
       }
     }
     case actionTypes.REMOVE_TOAST:
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
       return {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
@@ -116,19 +122,34 @@ export const reducer = (state: State, action: Action): State => {
 
 const listeners: ((state: State) => void)[] = []
 
-let memoryState: State = { toasts: [] }
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => listener(memoryState))
+let state: State = {
+  toasts: [],
 }
+
+function setState(action: Action) {
+  state = reducer(state, action)
+  listeners.forEach((listener) => listener(state))
+}
+
+const dispatch = (action: Action) => {
+  setState(action)
+}
+
+const memoizedDismiss = React.memo(
+  (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+  (prev, next) => prev === next,
+)
 
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
 
-  const update = (props: ToasterToast) => dispatch({ type: actionTypes.UPDATE_TOAST, toast: { ...props, id } })
+  const update = (props: ToasterToast) =>
+    dispatch({
+      type: actionTypes.UPDATE_TOAST,
+      toast: { ...props, id },
+    })
   const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
 
   dispatch({
@@ -150,24 +171,24 @@ function toast({ ...props }: Toast) {
   }
 }
 
-export function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+function useToast() {
+  const [toasts, setToasts] = React.useState(state.toasts)
 
   React.useEffect(() => {
-    listeners.push(setState)
+    listeners.push(setToasts)
     return () => {
-      const index = listeners.indexOf(setState)
+      const index = listeners.indexOf(setToasts)
       if (index > -1) {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [toasts])
 
   return {
-    ...state,
+    toasts,
     toast,
-    dismiss: React.useCallback(function dismiss(toastId?: string) {
-      dispatch({ type: actionTypes.DISMISS_TOAST, toastId })
-    }, []),
+    dismiss: memoizedDismiss,
   }
 }
+
+export { useToast, toast }

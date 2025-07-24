@@ -1,143 +1,81 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { Auth } from "@supabase/auth-ui-react"
+import { ThemeSupa } from "@supabase/auth-ui-shared"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import type { Database } from "@/types/supabase"
 
 export default function AuthPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
   const supabase = createClientComponentClient<Database>()
+  const router = useRouter()
   const { toast } = useToast()
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        toast({
+          title: "Authentication Successful",
+          description: "You have been logged in.",
+        })
+        router.push("/")
+      }
     })
-    if (error) {
-      toast({
-        title: "Sign In Error",
-        description: error.message,
-        variant: "destructive",
-      })
-    } else {
-      toast({
-        title: "Signed In",
-        description: "You have successfully signed in.",
-      })
-      window.location.href = "/" // Redirect to dashboard
-    }
-    setLoading(false)
-  }
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    })
-    if (error) {
-      toast({
-        title: "Sign Up Error",
-        description: error.message,
-        variant: "destructive",
-      })
-    } else {
-      toast({
-        title: "Sign Up Successful",
-        description: "Please check your email for a confirmation link.",
-      })
+    return () => {
+      subscription.unsubscribe()
     }
-    setLoading(false)
-  }
+  }, [router, supabase, toast])
 
   return (
-    <div className="flex justify-center items-center min-h-[calc(100vh-80px)]">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Authentication</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4 mt-4">
-                <div>
-                  <Label htmlFor="email-signin">Email</Label>
-                  <Input
-                    id="email-signin"
-                    type="email"
-                    placeholder="m@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password-signin">Password</Label>
-                  <Input
-                    id="password-signin"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Loading..." : "Sign In"}
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4 mt-4">
-                <div>
-                  <Label htmlFor="email-signup">Email</Label>
-                  <Input
-                    id="email-signup"
-                    type="email"
-                    placeholder="m@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password-signup">Password</Label>
-                  <Input
-                    id="password-signup"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Loading..." : "Sign Up"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+    <div className="flex justify-center items-center min-h-[calc(100vh-100px)]">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center">Welcome to Shepherd Connect</h2>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          providers={["google", "github"]}
+          redirectTo={`${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: "Email address",
+                password_label: "Your Password",
+                email_input_placeholder: "Enter your email address",
+                password_input_placeholder: "Enter your password",
+                button_label: "Sign In",
+                social_provider_text: "Sign in with {{provider}}",
+                link_text: "Already have an account? Sign In",
+              },
+              sign_up: {
+                email_label: "Email address",
+                password_label: "Create a Password",
+                email_input_placeholder: "Enter your email address",
+                password_input_placeholder: "Create a password",
+                button_label: "Sign Up",
+                social_provider_text: "Sign up with {{provider}}",
+                link_text: "Don't have an account? Sign Up",
+              },
+              forgotten_password: {
+                email_label: "Email address",
+                password_label: "Your Password",
+                email_input_placeholder: "Enter your email address",
+                button_label: "Send reset password instructions",
+                link_text: "Forgot your password?",
+              },
+              update_password: {
+                password_label: "New Password",
+                password_input_placeholder: "Enter your new password",
+                button_label: "Update Password",
+              },
+            },
+          }}
+        />
+      </div>
     </div>
   )
 }
