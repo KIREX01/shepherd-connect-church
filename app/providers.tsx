@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
@@ -52,5 +52,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut()
   }
 
-  return <AuthContext.Provider value={{ user, loading, signOut }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, loading, signOut }}>
+      <NextThemesProvider>{children}</NextThemesProvider>
+    </AuthContext.Provider>
+  )
 }

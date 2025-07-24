@@ -1,188 +1,128 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase"
-import { UserCheck } from "lucide-react"
-import type { Tables } from "@/types/supabase"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
 
-const attendanceSchema = z.object({
-  eventId: z.string().min(1, "Please select an event"),
-  memberId: z.string().min(1, "Please select a member"),
-  attended: z.boolean().default(true),
-})
-
-type AttendanceFormData = z.infer<typeof attendanceSchema>
-
-export function AttendanceEntryForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [events, setEvents] = useState<Tables<"events">[]>([])
-  const [members, setMembers] = useState<Tables<"members">[]>([])
-  const { toast } = useToast()
-
-  const form = useForm<AttendanceFormData>({
-    resolver: zodResolver(attendanceSchema),
-    defaultValues: {
-      eventId: "",
-      memberId: "",
-      attended: true,
-    },
+export default function AttendanceEntryForm() {
+  const [formData, setFormData] = useState({
+    event_id: "",
+    member_id: "",
+    attendance_date: "",
+    status: "present",
   })
+  const [events, setEvents] = useState<any[]>([])
+  const [members, setMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetchEvents()
-    fetchMembers()
+    const fetchData = async () => {
+      const { data: eventsData, error: eventsError } = await supabase.from("events").select("id, name")
+      if (eventsError) {
+        toast.error("Error fetching events: " + eventsError.message)
+      } else {
+        setEvents(eventsData)
+      }
+
+      const { data: membersData, error: membersError } = await supabase
+        .from("members")
+        .select("id, first_name, last_name")
+      if (membersError) {
+        toast.error("Error fetching members: " + membersError.message)
+      } else {
+        setMembers(membersData)
+      }
+    }
+    fetchData()
   }, [])
 
-  const fetchEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, title, event_date")
-        .order("event_date", { ascending: false })
-        .limit(20)
-
-      if (error) throw error
-      setEvents(data || [])
-    } catch (error) {
-      console.error("Error fetching events:", error)
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({ ...prev, [id]: value }))
   }
 
-  const fetchMembers = async () => {
-    try {
-      const { data, error } = await supabase.from("members").select("id, first_name, last_name").order("first_name")
-
-      if (error) throw error
-      setMembers(data || [])
-    } catch (error) {
-      console.error("Error fetching members:", error)
-    }
+  const handleSelectChange = (value: string, id: string) => {
+    setFormData((prev) => ({ ...prev, [id]: value }))
   }
 
-  const onSubmit = async (data: AttendanceFormData) => {
-    setIsSubmitting(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-    try {
-      const { error } = await supabase.from("event_registrations").insert({
-        event_id: data.eventId,
-        member_id: data.memberId,
-        attended: data.attended,
-        registration_date: new Date().toISOString().split("T")[0],
+    const { data, error } = await supabase.from("attendance").insert([formData])
+
+    if (error) {
+      toast.error("Error recording attendance: " + error.message)
+    } else {
+      toast.success("Attendance recorded successfully!")
+      setFormData({
+        event_id: "",
+        member_id: "",
+        attendance_date: "",
+        status: "present",
       })
-
-      if (error) throw error
-
-      toast({
-        title: "Success!",
-        description: "Attendance has been recorded successfully.",
-      })
-
-      form.reset()
-    } catch (error) {
-      console.error("Error recording attendance:", error)
-      toast({
-        title: "Error",
-        description: "Failed to record attendance. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
     }
+    setLoading(false)
   }
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UserCheck className="h-5 w-5" />
-          Attendance Entry
-        </CardTitle>
-        <CardDescription>Record member attendance for events</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="eventId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an event" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {events.map((event) => (
-                        <SelectItem key={event.id} value={event.id}>
-                          {event.title} - {new Date(event.event_date).toLocaleDateString()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="memberId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Member *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a member" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {members.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.first_name} {member.last_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="attended"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Attended</FormLabel>
-                    <p className="text-sm text-muted-foreground">Check if the member attended this event</p>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Recording Attendance..." : "Record Attendance"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="event_id">Event</Label>
+        <Select onValueChange={(value) => handleSelectChange(value, "event_id")} value={formData.event_id}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select event" />
+          </SelectTrigger>
+          <SelectContent>
+            {events.map((event) => (
+              <SelectItem key={event.id} value={event.id}>
+                {event.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="member_id">Member</Label>
+        <Select onValueChange={(value) => handleSelectChange(value, "member_id")} value={formData.member_id}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select member" />
+          </SelectTrigger>
+          <SelectContent>
+            {members.map((member) => (
+              <SelectItem key={member.id} value={member.id}>
+                {member.first_name} {member.last_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="attendance_date">Attendance Date</Label>
+        <Input id="attendance_date" type="date" value={formData.attendance_date} onChange={handleChange} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="status">Status</Label>
+        <Select onValueChange={(value) => handleSelectChange(value, "status")} value={formData.status}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="present">Present</SelectItem>
+            <SelectItem value="absent">Absent</SelectItem>
+            <SelectItem value="excused">Excused</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <Button type="submit" className="md:col-span-2" disabled={loading}>
+        {loading ? "Recording..." : "Record Attendance"}
+      </Button>
+    </form>
   )
 }

@@ -1,104 +1,94 @@
 "use client"
 
-import { useAuth } from "@/app/providers"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { Navbar } from "@/components/Navbar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import MemberRegistrationForm from "@/components/forms/MemberRegistrationForm"
+import DonationEntryForm from "@/components/forms/DonationEntryForm"
+import EventCreationForm from "@/components/forms/EventCreationForm"
+import AttendanceEntryForm from "@/components/forms/AttendanceEntryForm"
+import VolunteerRegistrationForm from "@/components/forms/VolunteerRegistrationForm"
+import MinistryCreationForm from "@/components/forms/MinistryCreationForm"
 
-export default function Forms() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth")
-    }
-  }, [user, loading, router])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
-
+export default function FormsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Church Forms</h1>
-          <p className="text-gray-600 mt-2">Access all church management forms in one place.</p>
-        </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Forms</h1>
+      <Tabs defaultValue="member-registration">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+          <TabsTrigger value="member-registration">Member Registration</TabsTrigger>
+          <TabsTrigger value="donation-entry">Donation Entry</TabsTrigger>
+          <TabsTrigger value="event-creation">Event Creation</TabsTrigger>
+          <TabsTrigger value="attendance-entry">Attendance Entry</TabsTrigger>
+          <TabsTrigger value="volunteer-registration">Volunteer Registration</TabsTrigger>
+          <TabsTrigger value="ministry-creation">Ministry Creation</TabsTrigger>
+        </TabsList>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TabsContent value="member-registration" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Member Registration</CardTitle>
-              <CardDescription>Register new church members</CardDescription>
+              <CardTitle>Register New Member</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Add new members to the church directory.</p>
+              <MemberRegistrationForm />
             </CardContent>
           </Card>
+        </TabsContent>
 
+        <TabsContent value="donation-entry" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Event Creation</CardTitle>
-              <CardDescription>Create and schedule church events</CardDescription>
+              <CardTitle>Record Donation</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Plan and organize church activities and events.</p>
+              <DonationEntryForm />
             </CardContent>
           </Card>
+        </TabsContent>
 
+        <TabsContent value="event-creation" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Donation Entry</CardTitle>
-              <CardDescription>Record donations and offerings</CardDescription>
+              <CardTitle>Create New Event</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Track financial contributions to the church.</p>
+              <EventCreationForm />
             </CardContent>
           </Card>
+        </TabsContent>
 
+        <TabsContent value="attendance-entry" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Ministry Creation</CardTitle>
-              <CardDescription>Create new ministry groups</CardDescription>
+              <CardTitle>Record Attendance</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Organize and manage church ministries.</p>
+              <AttendanceEntryForm />
             </CardContent>
           </Card>
+        </TabsContent>
 
+        <TabsContent value="volunteer-registration" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Volunteer Registration</CardTitle>
-              <CardDescription>Sign up volunteers for activities</CardDescription>
+              <CardTitle>Register Volunteer</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Coordinate volunteer participation in church events.</p>
+              <VolunteerRegistrationForm />
             </CardContent>
           </Card>
+        </TabsContent>
 
+        <TabsContent value="ministry-creation" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Attendance Entry</CardTitle>
-              <CardDescription>Record service attendance</CardDescription>
+              <CardTitle>Create New Ministry</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Track attendance for services and events.</p>
+              <MinistryCreationForm />
             </CardContent>
           </Card>
-        </div>
-      </main>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

@@ -1,27 +1,26 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormControl, FormLabel } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase"
-import { Calendar } from "lucide-react"
+import { toast } from "sonner"
+import { supabase } from "@/integrations/supabase/client"
 import type { Tables } from "@/types/supabase"
 
 const eventSchema = z.object({
-  title: z.string().min(1, "Event title is required"),
+  name: z.string().min(1, "Event name is required"),
   description: z.string().optional(),
-  eventDate: z.string().min(1, "Event date is required"),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
+  event_date: z.string().min(1, "Event date is required"),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
   location: z.string().optional(),
   ministryId: z.string().optional(),
   registrationRequired: z.boolean().default(false),
@@ -31,26 +30,21 @@ const eventSchema = z.object({
 
 type EventFormData = z.infer<typeof eventSchema>
 
-export function EventCreationForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [ministries, setMinistries] = useState<Tables<"ministries">[]>([])
-  const { toast } = useToast()
-
-  const form = useForm<EventFormData>({
-    resolver: zodResolver(eventSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      eventDate: "",
-      startTime: "",
-      endTime: "",
-      location: "",
-      ministryId: "",
-      registrationRequired: false,
-      registrationDeadline: "",
-      maxAttendees: "",
-    },
+export default function EventCreationForm() {
+  const [formData, setFormData] = useState({
+    name: "",
+    event_date: "",
+    start_time: "",
+    end_time: "",
+    location: "",
+    description: "",
+    ministryId: "",
+    registrationRequired: false,
+    registrationDeadline: "",
+    maxAttendees: "",
   })
+  const [loading, setLoading] = useState(false)
+  const [ministries, setMinistries] = useState<Tables<"ministries">[]>([])
 
   useEffect(() => {
     fetchMinistries()
@@ -67,221 +61,125 @@ export function EventCreationForm() {
     }
   }
 
-  const onSubmit = async (data: EventFormData) => {
-    setIsSubmitting(true)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({ ...prev, [id]: value }))
+  }
 
-    try {
-      const { error } = await supabase.from("events").insert({
-        title: data.title,
-        description: data.description || null,
-        event_date: data.eventDate,
-        start_time: data.startTime || null,
-        end_time: data.endTime || null,
-        location: data.location || null,
-        ministry_id: data.ministryId || null,
-        registration_required: data.registrationRequired,
-        registration_deadline: data.registrationDeadline || null,
-        max_attendees: data.maxAttendees ? Number(data.maxAttendees) : null,
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    const { data, error } = await supabase.from("events").insert([formData])
+
+    if (error) {
+      toast.error("Error creating event: " + error.message)
+    } else {
+      toast.success("Event created successfully!")
+      setFormData({
+        name: "",
+        event_date: "",
+        start_time: "",
+        end_time: "",
+        location: "",
+        description: "",
+        ministryId: "",
+        registrationRequired: false,
+        registrationDeadline: "",
+        maxAttendees: "",
       })
-
-      if (error) throw error
-
-      toast({
-        title: "Success!",
-        description: "Event has been created successfully.",
-      })
-
-      form.reset()
-    } catch (error) {
-      console.error("Error creating event:", error)
-      toast({
-        title: "Error",
-        description: "Failed to create event. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
     }
+    setLoading(false)
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Event Creation
-        </CardTitle>
+        <CardTitle className="flex items-center gap-2">Event Creation</CardTitle>
         <CardDescription>Create a new church event or activity</CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Title *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter event title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter event description" className="min-h-[100px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="eventDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Date *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="startTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Time</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Time</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2 md:col-span-2">
+            <FormLabel htmlFor="name">Event Name</FormLabel>
+            <Input id="name" value={formData.name} onChange={handleChange} required />
+          </div>
+          <div className="space-y-2">
+            <FormLabel htmlFor="event_date">Date</FormLabel>
+            <Input id="event_date" type="date" value={formData.event_date} onChange={handleChange} required />
+          </div>
+          <div className="space-y-2">
+            <FormLabel htmlFor="start_time">Start Time</FormLabel>
+            <Input id="start_time" type="time" value={formData.start_time} onChange={handleChange} required />
+          </div>
+          <div className="space-y-2">
+            <FormLabel htmlFor="end_time">End Time</FormLabel>
+            <Input id="end_time" type="time" value={formData.end_time} onChange={handleChange} />
+          </div>
+          <div className="space-y-2">
+            <FormLabel htmlFor="location">Location</FormLabel>
+            <Input id="location" value={formData.location} onChange={handleChange} required />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <FormLabel htmlFor="description">Description</FormLabel>
+            <Textarea id="description" value={formData.description} onChange={handleChange} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <FormLabel htmlFor="ministryId">Ministry</FormLabel>
+              <Select
+                onValueChange={(value) => handleChange({ target: { id: "ministryId", value } })}
+                defaultValue={formData.ministryId}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select ministry" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ministries.map((ministry) => (
+                    <SelectItem key={ministry.id} value={ministry.id}>
+                      {ministry.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <FormLabel htmlFor="registrationRequired">Registration Required</FormLabel>
+              <Checkbox
+                checked={formData.registrationRequired}
+                onCheckedChange={(value) => handleChange({ target: { id: "registrationRequired", value } })}
               />
             </div>
-
+          </div>
+          {formData.registrationRequired && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter event location" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ministryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ministry</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select ministry" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ministries.map((ministry) => (
-                          <SelectItem key={ministry.id} value={ministry.id}>
-                            {ministry.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="registrationRequired"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Registration Required</FormLabel>
-                    <p className="text-sm text-muted-foreground">Check if attendees need to register for this event</p>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {form.watch("registrationRequired") && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="registrationDeadline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Registration Deadline</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="maxAttendees"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Attendees</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="Enter maximum number of attendees" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div className="space-y-2">
+                <FormLabel htmlFor="registrationDeadline">Registration Deadline</FormLabel>
+                <Input
+                  id="registrationDeadline"
+                  type="date"
+                  value={formData.registrationDeadline}
+                  onChange={handleChange}
                 />
               </div>
-            )}
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating Event..." : "Create Event"}
-            </Button>
-          </form>
-        </Form>
+              <div className="space-y-2">
+                <FormLabel htmlFor="maxAttendees">Max Attendees</FormLabel>
+                <Input
+                  id="maxAttendees"
+                  type="number"
+                  placeholder="Enter maximum number of attendees"
+                  value={formData.maxAttendees}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          )}
+          <Button type="submit" className="md:col-span-2" disabled={loading}>
+            {loading ? "Creating..." : "Create Event"}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   )

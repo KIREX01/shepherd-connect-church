@@ -1,52 +1,58 @@
-"use client"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { createClient } from "@/lib/supabase"
+import { cookies } from "next/headers"
 
-import { useAuth } from "@/app/providers"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { Navbar } from "@/components/Navbar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+export default async function MembersPage() {
+  const cookieStore = cookies()
+  const supabase = createClient(cookieStore)
 
-export default function Members() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  const { data: members, error } = await supabase.from("members").select("*").order("last_name", { ascending: true })
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth")
-    }
-  }, [user, loading, router])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
+  if (error) {
+    console.error("Error fetching members:", error)
+    return <div className="text-red-500">Error loading members.</div>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Members Directory</h1>
-          <p className="text-gray-600 mt-2">Manage your church members and their information.</p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Member Management</CardTitle>
-            <CardDescription>View and manage all church members</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">Member management functionality coming soon...</p>
-          </CardContent>
-        </Card>
-      </main>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Members</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Members</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Role</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    {member.first_name} {member.last_name}
+                  </TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{member.phone_number}</TableCell>
+                  <TableCell>
+                    <Badge variant={member.is_active ? "default" : "secondary"}>
+                      {member.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{member.role}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

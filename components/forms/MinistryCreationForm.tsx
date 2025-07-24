@@ -1,19 +1,20 @@
 "use client"
 
+import { Label } from "@/components/ui/label"
+
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormControl } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase"
-import { Church } from "lucide-react"
+import { toast } from "sonner"
+import { supabase } from "@/integrations/supabase/client"
 import type { Tables } from "@/types/supabase"
 
 const ministrySchema = z.object({
@@ -29,24 +30,52 @@ const ministrySchema = z.object({
 
 type MinistryFormData = z.infer<typeof ministrySchema>
 
-export function MinistryCreationForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [members, setMembers] = useState<Tables<"members">[]>([])
-  const { toast } = useToast()
-
-  const form = useForm<MinistryFormData>({
-    resolver: zodResolver(ministrySchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      category: "",
-      leaderId: "",
-      meetingDay: "",
-      meetingTime: "",
-      meetingLocation: "",
-      isActive: true,
-    },
+export default function MinistryCreationForm() {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    category: "",
+    leaderId: "",
+    meetingDay: "",
+    meetingTime: "",
+    meetingLocation: "",
+    is_active: true,
   })
+  const [loading, setLoading] = useState(false)
+  const [members, setMembers] = useState<Tables<"members">[]>([])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({ ...prev, [id]: value }))
+  }
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData((prev) => ({ ...prev, is_active: checked }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    const { data, error } = await supabase.from("ministries").insert([formData])
+
+    if (error) {
+      toast.error("Error creating ministry: " + error.message)
+    } else {
+      toast.success("Ministry created successfully!")
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        leaderId: "",
+        meetingDay: "",
+        meetingTime: "",
+        meetingLocation: "",
+        is_active: true,
+      })
+    }
+    setLoading(false)
+  }
 
   useEffect(() => {
     fetchMembers()
@@ -63,215 +92,112 @@ export function MinistryCreationForm() {
     }
   }
 
-  const onSubmit = async (data: MinistryFormData) => {
-    setIsSubmitting(true)
-
-    try {
-      const { error } = await supabase.from("ministries").insert({
-        name: data.name,
-        description: data.description || null,
-        category: data.category || null,
-        leader_id: data.leaderId || null,
-        meeting_day: data.meetingDay || null,
-        meeting_time: data.meetingTime || null,
-        meeting_location: data.meetingLocation || null,
-        is_active: data.isActive,
-      })
-
-      if (error) throw error
-
-      toast({
-        title: "Success!",
-        description: "Ministry has been created successfully.",
-      })
-
-      form.reset()
-      form.setValue("isActive", true)
-    } catch (error) {
-      console.error("Error creating ministry:", error)
-      toast({
-        title: "Error",
-        description: "Failed to create ministry. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Church className="h-5 w-5" />
-          Ministry Creation
-        </CardTitle>
+        <CardTitle className="flex items-center gap-2">Ministry Creation</CardTitle>
         <CardDescription>Create a new ministry or program</CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ministry Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter ministry name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter ministry description" className="min-h-[100px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="worship">Worship</SelectItem>
-                        <SelectItem value="youth">Youth</SelectItem>
-                        <SelectItem value="children">Children</SelectItem>
-                        <SelectItem value="outreach">Outreach</SelectItem>
-                        <SelectItem value="discipleship">Discipleship</SelectItem>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="missions">Missions</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="leaderId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Leader</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select leader" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {members.map((member) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.first_name} {member.last_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Ministry Name *</Label>
+            <Input id="name" value={formData.name} onChange={handleChange} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea id="description" value={formData.description} onChange={handleChange} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+                defaultValue={formData.category}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="worship">Worship</SelectItem>
+                  <SelectItem value="youth">Youth</SelectItem>
+                  <SelectItem value="children">Children</SelectItem>
+                  <SelectItem value="outreach">Outreach</SelectItem>
+                  <SelectItem value="discipleship">Discipleship</SelectItem>
+                  <SelectItem value="music">Music</SelectItem>
+                  <SelectItem value="missions">Missions</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="leaderId">Leader</Label>
+              <Select
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, leaderId: value }))}
+                defaultValue={formData.leaderId}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select leader" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {members.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.first_name} {member.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="meetingDay">Meeting Day</Label>
+              <Select
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, meetingDay: value }))}
+                defaultValue={formData.meetingDay}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="sunday">Sunday</SelectItem>
+                  <SelectItem value="monday">Monday</SelectItem>
+                  <SelectItem value="tuesday">Tuesday</SelectItem>
+                  <SelectItem value="wednesday">Wednesday</SelectItem>
+                  <SelectItem value="thursday">Thursday</SelectItem>
+                  <SelectItem value="friday">Friday</SelectItem>
+                  <SelectItem value="saturday">Saturday</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meetingTime">Meeting Time</Label>
+              <Input type="time" id="meetingTime" value={formData.meetingTime} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meetingLocation">Meeting Location</Label>
+              <Input
+                id="meetingLocation"
+                value={formData.meetingLocation}
+                onChange={handleChange}
+                placeholder="Enter location"
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="meetingDay"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Meeting Day</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select day" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="sunday">Sunday</SelectItem>
-                        <SelectItem value="monday">Monday</SelectItem>
-                        <SelectItem value="tuesday">Tuesday</SelectItem>
-                        <SelectItem value="wednesday">Wednesday</SelectItem>
-                        <SelectItem value="thursday">Thursday</SelectItem>
-                        <SelectItem value="friday">Friday</SelectItem>
-                        <SelectItem value="saturday">Saturday</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="meetingTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Meeting Time</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="meetingLocation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Meeting Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter location" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="isActive"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Active Ministry</FormLabel>
-                    <p className="text-sm text-muted-foreground">Check if this ministry is currently active</p>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating Ministry..." : "Create Ministry"}
-            </Button>
-          </form>
-        </Form>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="is_active" checked={formData.is_active} onCheckedChange={handleCheckboxChange} />
+            <Label htmlFor="is_active">Active Ministry</Label>
+          </div>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Creating..." : "Create Ministry"}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   )
