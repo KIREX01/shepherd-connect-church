@@ -1,76 +1,103 @@
+"use client"
+
+import { useAuth } from "@/app/providers"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { Navbar } from "@/components/Navbar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MemberRegistrationForm } from "@/components/forms/MemberRegistrationForm"
-import { DonationEntryForm } from "@/components/forms/DonationEntryForm"
-import { EventCreationForm } from "@/components/forms/EventCreationForm"
-import { AttendanceEntryForm } from "@/components/forms/AttendanceEntryForm"
-import { VolunteerRegistrationForm } from "@/components/forms/VolunteerRegistrationForm"
-import { MinistryCreationForm } from "@/components/forms/MinistryCreationForm"
-import { Users, DollarSign, Calendar, UserCheck, Heart, Church } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function FormsPage() {
+export default function Forms() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth")
+    }
+  }, [user, loading, router])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-
-      <main className="container mx-auto py-6 space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Church Forms</h1>
-          <p className="text-muted-foreground">Manage church operations with these essential forms</p>
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Church Forms</h1>
+          <p className="text-gray-600 mt-2">Access all church management forms in one place.</p>
         </div>
 
-        <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="members" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Members
-            </TabsTrigger>
-            <TabsTrigger value="donations" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Donations
-            </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="attendance" className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              Attendance
-            </TabsTrigger>
-            <TabsTrigger value="volunteers" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Volunteers
-            </TabsTrigger>
-            <TabsTrigger value="ministries" className="flex items-center gap-2">
-              <Church className="h-4 w-4" />
-              Ministries
-            </TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Member Registration</CardTitle>
+              <CardDescription>Register new church members</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Add new members to the church directory.</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="members">
-            <MemberRegistrationForm />
-          </TabsContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Event Creation</CardTitle>
+              <CardDescription>Create and schedule church events</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Plan and organize church activities and events.</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="donations">
-            <DonationEntryForm />
-          </TabsContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Donation Entry</CardTitle>
+              <CardDescription>Record donations and offerings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Track financial contributions to the church.</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="events">
-            <EventCreationForm />
-          </TabsContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Ministry Creation</CardTitle>
+              <CardDescription>Create new ministry groups</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Organize and manage church ministries.</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="attendance">
-            <AttendanceEntryForm />
-          </TabsContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Volunteer Registration</CardTitle>
+              <CardDescription>Sign up volunteers for activities</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Coordinate volunteer participation in church events.</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="volunteers">
-            <VolunteerRegistrationForm />
-          </TabsContent>
-
-          <TabsContent value="ministries">
-            <MinistryCreationForm />
-          </TabsContent>
-        </Tabs>
+          <Card>
+            <CardHeader>
+              <CardTitle>Attendance Entry</CardTitle>
+              <CardDescription>Record service attendance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Track attendance for services and events.</p>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   )

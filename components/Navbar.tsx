@@ -1,89 +1,64 @@
 "use client"
 
-import { useAuth } from "@/hooks/useAuth"
-import { Button } from "@/components/ui/button"
-import { Church, Users, FileText, LogOut, Home, Database } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useAuth } from "@/app/providers"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { User, LogOut, Settings } from "lucide-react"
 
 export function Navbar() {
-  const { user, signOut, userRole } = useAuth()
-  const pathname = usePathname()
-
-  const handleSignOut = async () => {
-    await signOut()
-  }
-
-  const isActive = (path: string) => pathname === path
+  const { user, signOut } = useAuth()
 
   return (
-    <nav className="border-b bg-card/50 backdrop-blur">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Church className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold">Church Management</h1>
-              <p className="text-sm text-muted-foreground">Welcome, {user?.user_metadata?.first_name || user?.email}</p>
+    <nav className="bg-white shadow-sm border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="text-xl font-bold text-gray-900">
+              Shepherd Connect
+            </Link>
+
+            <div className="hidden md:flex space-x-6">
+              <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Dashboard
+              </Link>
+              <Link href="/members" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Members
+              </Link>
+              <Link href="/forms" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Forms
+              </Link>
+              <Link href="/records" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Records
+              </Link>
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant={isActive("/") ? "default" : "ghost"} size="sm" className="flex items-center space-x-2">
-                  <Home className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Button>
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>{user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/auth">
+                <Button>Sign In</Button>
               </Link>
-
-              <Link href="/forms">
-                <Button
-                  variant={isActive("/forms") ? "default" : "ghost"}
-                  size="sm"
-                  className="flex items-center space-x-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Forms</span>
-                </Button>
-              </Link>
-
-              {(userRole === "admin" || userRole === "pastor") && (
-                <>
-                  <Link href="/members">
-                    <Button
-                      variant={isActive("/members") ? "default" : "ghost"}
-                      size="sm"
-                      className="flex items-center space-x-2"
-                    >
-                      <Users className="h-4 w-4" />
-                      <span>Members</span>
-                    </Button>
-                  </Link>
-
-                  {userRole === "admin" && (
-                    <Link href="/records">
-                      <Button
-                        variant={isActive("/records") ? "default" : "ghost"}
-                        size="sm"
-                        className="flex items-center space-x-2"
-                      >
-                        <Database className="h-4 w-4" />
-                        <span>Records</span>
-                      </Button>
-                    </Link>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">{userRole}</span>
-              <Button variant="outline" onClick={handleSignOut} size="sm">
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
