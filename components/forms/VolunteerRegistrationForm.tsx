@@ -3,86 +3,94 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { supabase } from "@/integrations/supabase/client"
-import { toast } from "sonner"
+import type { Database } from "@/types/supabase"
 
 export default function VolunteerRegistrationForm() {
-  const [formData, setFormData] = useState({
-    member_id: "",
-    ministry_id: "",
-    role: "",
-    start_date: "",
-    end_date: "",
-    notes: "",
-  })
-  const [members, setMembers] = useState<any[]>([])
-  const [ministries, setMinistries] = useState<any[]>([])
+  const [memberId, setMemberId] = useState<string | null>(null)
+  const [eventId, setEventId] = useState<string | null>(null)
+  const [role, setRole] = useState("")
+  const [members, setMembers] = useState<Database["public"]["Tables"]["members"]["Row"][]>([])
+  const [events, setEvents] = useState<Database["public"]["Tables"]["events"]["Row"][]>([])
   const [loading, setLoading] = useState(false)
+  const supabase = createClientComponentClient<Database>()
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: membersData, error: membersError } = await supabase
         .from("members")
         .select("id, first_name, last_name")
+      const { data: eventsData, error: eventsError } = await supabase.from("events").select("id, name, date")
+
       if (membersError) {
-        toast.error("Error fetching members: " + membersError.message)
+        toast({ title: "Error fetching members", description: membersError.message, variant: "destructive" })
       } else {
-        setMembers(membersData)
+        setMembers(membersData || [])
       }
 
-      const { data: ministriesData, error: ministriesError } = await supabase.from("ministries").select("id, name")
-      if (ministriesError) {
-        toast.error("Error fetching ministries: " + ministriesError.message)
+      if (eventsError) {
+        toast({ title: "Error fetching events", description: eventsError.message, variant: "destructive" })
       } else {
-        setMinistries(ministriesData)
+        setEvents(eventsData || [])
       }
     }
     fetchData()
-  }, [])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
-
-  const handleSelectChange = (value: string, id: string) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
+  }, [supabase, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const { data, error } = await supabase.from("volunteer_assignments").insert([formData])
+    if (!memberId || !eventId || !role) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a member, an event, and a role.",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    const { data, error } = await supabase.from("volunteers").insert([
+      {
+        member_id: memberId,
+        event_id: eventId,
+        role,
+      },
+    ])
 
     if (error) {
-      toast.error("Error registering volunteer: " + error.message)
-    } else {
-      toast.success("Volunteer registered successfully!")
-      setFormData({
-        member_id: "",
-        ministry_id: "",
-        role: "",
-        start_date: "",
-        end_date: "",
-        notes: "",
+      toast({
+        title: "Error registering volunteer",
+        description: error.message,
+        variant: "destructive",
       })
+    } else {
+      toast({
+        title: "Volunteer registered successfully!",
+        description: "The volunteer has been added to the database.",
+      })
+      // Clear form
+      setMemberId(null)
+      setEventId(null)
+      setRole("")
     }
     setLoading(false)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="member_id">Member</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "member_id")} value={formData.member_id}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select member" />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="member">Member</Label>
+        <Select value={memberId || ""} onValueChange={setMemberId}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a member" />
           </SelectTrigger>
           <SelectContent>
             {members.map((member) => (
@@ -93,38 +101,26 @@ export default function VolunteerRegistrationForm() {
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="ministry_id">Ministry</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "ministry_id")} value={formData.ministry_id}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select ministry" />
+      <div>
+        <Label htmlFor="event">Event</Label>
+        <Select value={eventId || ""} onValueChange={setEventId}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select an event" />
           </SelectTrigger>
           <SelectContent>
-            {ministries.map((ministry) => (
-              <SelectItem key={ministry.id} value={ministry.id}>
-                {ministry.name}
+            {events.map((event) => (
+              <SelectItem key={event.id} value={event.id}>
+                {event.name} ({event.date})
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="role">Role in Ministry</Label>
-        <Input id="role" value={formData.role} onChange={handleChange} required />
+      <div>
+        <Label htmlFor="role">Role</Label>
+        <Input id="role" value={role} onChange={(e) => setRole(e.target.value)} required />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="start_date">Start Date</Label>
-        <Input id="start_date" type="date" value={formData.start_date} onChange={handleChange} required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="end_date">End Date (Optional)</Label>
-        <Input id="end_date" type="date" value={formData.end_date} onChange={handleChange} />
-      </div>
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" value={formData.notes} onChange={handleChange} />
-      </div>
-      <Button type="submit" className="md:col-span-2" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Registering..." : "Register Volunteer"}
       </Button>
     </form>

@@ -3,121 +3,90 @@
 import type React from "react"
 
 import { useState } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
-import { supabase } from "@/integrations/supabase/client"
-import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { Database } from "@/types/supabase"
 
 export default function MemberRegistrationForm() {
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    address: "",
-    date_of_birth: "",
-    gender: "",
-    membership_date: "",
-    is_active: true,
-    role: "member",
-  })
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [address, setAddress] = useState("")
+  const [role, setRole] = useState("member") // Default role
   const [loading, setLoading] = useState(false)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
-
-  const handleSelectChange = (value: string, id: string) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
-
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, is_active: checked }))
-  }
+  const supabase = createClientComponentClient<Database>()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const { data, error } = await supabase.from("members").insert([formData])
+    const { data, error } = await supabase.from("members").insert([
+      {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        address,
+        role,
+      },
+    ])
 
     if (error) {
-      toast.error("Error registering member: " + error.message)
-    } else {
-      toast.success("Member registered successfully!")
-      setFormData({
-        first_name: "",
-        last_name: "",
-        email: "",
-        phone_number: "",
-        address: "",
-        date_of_birth: "",
-        gender: "",
-        membership_date: "",
-        is_active: true,
-        role: "member",
+      toast({
+        title: "Error registering member",
+        description: error.message,
+        variant: "destructive",
       })
+    } else {
+      toast({
+        title: "Member registered successfully!",
+        description: "The new member has been added to the database.",
+      })
+      // Clear form
+      setFirstName("")
+      setLastName("")
+      setEmail("")
+      setPhone("")
+      setAddress("")
+      setRole("member")
     }
     setLoading(false)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="first_name">First Name</Label>
-        <Input id="first_name" value={formData.first_name} onChange={handleChange} required />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="firstName">First Name</Label>
+        <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="last_name">Last Name</Label>
-        <Input id="last_name" value={formData.last_name} onChange={handleChange} required />
+      <div>
+        <Label htmlFor="lastName">Last Name</Label>
+        <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
       </div>
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" value={formData.email} onChange={handleChange} required />
+        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="phone_number">Phone Number</Label>
-        <Input id="phone_number" value={formData.phone_number} onChange={handleChange} />
+      <div>
+        <Label htmlFor="phone">Phone</Label>
+        <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
       </div>
-      <div className="space-y-2 md:col-span-2">
+      <div>
         <Label htmlFor="address">Address</Label>
-        <Textarea id="address" value={formData.address} onChange={handleChange} />
+        <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="date_of_birth">Date of Birth</Label>
-        <Input id="date_of_birth" type="date" value={formData.date_of_birth} onChange={handleChange} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="gender">Gender</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "gender")} value={formData.gender}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select gender" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Male">Male</SelectItem>
-            <SelectItem value="Female">Female</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="membership_date">Membership Date</Label>
-        <Input id="membership_date" type="date" value={formData.membership_date} onChange={handleChange} required />
-      </div>
-      <div className="flex items-center space-x-2 md:col-span-2">
-        <Checkbox id="is_active" checked={formData.is_active} onCheckedChange={handleCheckboxChange} />
-        <Label htmlFor="is_active">Active Member</Label>
-      </div>
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="role">Role</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "role")} value={formData.role}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select role" />
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a role" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="member">Member</SelectItem>
@@ -126,7 +95,7 @@ export default function MemberRegistrationForm() {
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" className="md:col-span-2" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Registering..." : "Register Member"}
       </Button>
     </form>

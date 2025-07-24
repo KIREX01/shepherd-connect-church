@@ -1,168 +1,325 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase"
+import { useState, useEffect, useCallback } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign, Church, BookOpen } from "lucide-react"
+import type { Database } from "@/types/supabase"
+import { Trash2 } from "lucide-react"
 import { format } from "date-fns"
-import type { Tables } from "@/types/supabase"
 
-interface MemberWithDetails extends Tables<"members"> {}
+type RecordType = keyof Database["public"]["Tables"]
 
-interface EventWithDetails extends Tables<"events"> {
-  ministries?: { name: string } | null
+interface RecordsManagerProps {
+  recordType: RecordType
 }
 
-interface DonationWithMember extends Tables<"donations"> {
-  members?: { first_name: string; last_name: string } | null
-}
-
-interface EventRegistrationWithDetails extends Tables<"event_registrations"> {
-  events?: { title: string } | null
-  members?: { first_name: string; last_name: string } | null
-}
-
-interface MinistryWithLeader extends Tables<"ministries"> {
-  leader?: { first_name: string; last_name: string } | null
-}
-
-interface SermonWithDetails extends Tables<"sermons"> {}
-
-export function RecordsManager() {
-  const [members, setMembers] = useState<MemberWithDetails[]>([])
-  const [events, setEvents] = useState<EventWithDetails[]>([])
-  const [donations, setDonations] = useState<DonationWithMember[]>([])
-  const [eventRegistrations, setEventRegistrations] = useState<EventRegistrationWithDetails[]>([])
-  const [ministries, setMinistries] = useState<MinistryWithLeader[]>([])
-  const [sermons, setSermons] = useState<SermonWithDetails[]>([])
+export default function RecordsManager({ recordType }: RecordsManagerProps) {
+  const [records, setRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient<Database>()
   const { toast } = useToast()
 
+  const fetchRecords = useCallback(async () => {
+    setLoading(true)
+    let query = supabase.from(recordType).select("*")
+
+    // Add relationships for display
+    if (recordType === "donations") {
+      query = supabase.from("donations").select("*, members(first_name, last_name)")
+    } else if (recordType === "registrations") {
+      query = supabase.from("registrations").select("*, members(first_name, last_name), events(name, date)")
+    } else if (recordType === "attendance") {
+      query = supabase.from("attendance").select("*, members(first_name, last_name), events(name, date)")
+    } else if (recordType === "volunteers") {
+      query = supabase.from("volunteers").select("*, members(first_name, last_name), events(name, date)")
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      toast({
+        title: `Error fetching ${recordType}`,
+        description: error.message,
+        variant: "destructive",
+      })
+      setRecords([])
+    } else {
+      setRecords(data || [])
+    }
+    setLoading(false)
+  }, [recordType, supabase, toast])
+
   useEffect(() => {
-    fetchAllData()
-  }, [])
+    fetchRecords()
+  }, [fetchRecords])
 
-  const fetchAllData = async () => {
-    try {
-      setLoading(true)
+  const handleDelete = async (id: string) => {
+    if (!confirm(`Are you sure you want to delete this ${recordType} record?`)) {
+      return
+    }
+    setLoading(true)
+    const { error } = await supabase.from(recordType).delete().eq("id", id)
 
-      // Fetch members
-      const { data: membersData, error: membersError } = await supabase
-        .from("members")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (membersError) throw membersError
-
-      // Fetch events with ministry info
-      const { data: eventsData, error: eventsError } = await supabase
-        .from("events")
-        .select(`
-          *,
-          ministries(name)
-        `)
-        .order("created_at", { ascending: false })
-
-      if (eventsError) throw eventsError
-
-      // Fetch donations with member info
-      const { data: donationsData, error: donationsError } = await supabase
-        .from("donations")
-        .select(`
-          *,
-          members(first_name, last_name)
-        `)
-        .order("created_at", { ascending: false })
-
-      if (donationsError) throw donationsError
-
-      // Fetch event registrations with event and member info
-      const { data: registrationsData, error: registrationsError } = await supabase
-        .from("event_registrations")
-        .select(`
-          *,
-          events(title),
-          members(first_name, last_name)
-        `)
-        .order("registration_date", { ascending: false })
-
-      if (registrationsError) throw registrationsError
-
-      // Fetch ministries with leader info
-      const { data: ministriesData, error: ministriesError } = await supabase
-        .from("ministries")
-        .select(`
-          *,
-          leader:members!ministries_leader_id_fkey(first_name, last_name)
-        `)
-        .order("created_at", { ascending: false })
-
-      if (ministriesError) throw ministriesError
-
-      // Fetch sermons
-      const { data: sermonsData, error: sermonsError } = await supabase
-        .from("sermons")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (sermonsError) throw sermonsError
-
-      setMembers(membersData || [])
-      setEvents(eventsData || [])
-      setDonations(donationsData || [])
-      setEventRegistrations(registrationsData || [])
-      setMinistries(ministriesData || [])
-      setSermons(sermonsData || [])
-    } catch (error) {
-      console.error("Error fetching data:", error)
+    if (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch records data",
+        title: `Error deleting ${recordType} record`,
+        description: error.message,
         variant: "destructive",
       })
-    } finally {
-      setLoading(false)
+    } else {
+      toast({
+        title: "Record deleted successfully!",
+        description: `The ${recordType} record has been removed.`,
+      })
+      fetchRecords() // Re-fetch records after deletion
+    }
+    setLoading(false)
+  }
+
+  const renderTableContent = () => {
+    if (loading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="text-center">
+            Loading...
+          </TableCell>
+        </TableRow>
+      )
+    }
+    if (records.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="text-center">
+            No records found.
+          </TableCell>
+        </TableRow>
+      )
+    }
+
+    switch (recordType) {
+      case "members":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>
+              {record.first_name} {record.last_name}
+            </TableCell>
+            <TableCell>{record.email}</TableCell>
+            <TableCell>{record.phone || "N/A"}</TableCell>
+            <TableCell>{record.role}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "events":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>{record.name}</TableCell>
+            <TableCell>{format(new Date(record.date), "MMM dd, yyyy")}</TableCell>
+            <TableCell>{record.time}</TableCell>
+            <TableCell>{record.location}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "donations":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>${record.amount.toFixed(2)}</TableCell>
+            <TableCell>{record.type}</TableCell>
+            <TableCell>{format(new Date(record.date), "MMM dd, yyyy")}</TableCell>
+            <TableCell>{record.members ? `${record.members.first_name} ${record.members.last_name}` : "N/A"}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "ministries":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>{record.name}</TableCell>
+            <TableCell>{record.description || "N/A"}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "registrations":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>
+              {record.members.first_name} {record.members.last_name}
+            </TableCell>
+            <TableCell>
+              {record.events.name} ({format(new Date(record.events.date), "MMM dd, yyyy")})
+            </TableCell>
+            <TableCell>{format(new Date(record.registration_date), "MMM dd, yyyy")}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "sermons":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>{record.title}</TableCell>
+            <TableCell>{record.speaker}</TableCell>
+            <TableCell>{format(new Date(record.date), "MMM dd, yyyy")}</TableCell>
+            <TableCell>
+              {record.url ? (
+                <a
+                  href={record.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  Link
+                </a>
+              ) : (
+                "N/A"
+              )}
+            </TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "attendance":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>
+              {record.members.first_name} {record.members.last_name}
+            </TableCell>
+            <TableCell>
+              {record.events.name} ({format(new Date(record.events.date), "MMM dd, yyyy")})
+            </TableCell>
+            <TableCell>{format(new Date(record.timestamp), "MMM dd, yyyy")}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      case "volunteers":
+        return records.map((record) => (
+          <TableRow key={record.id}>
+            <TableCell>
+              {record.members.first_name} {record.members.last_name}
+            </TableCell>
+            <TableCell>
+              {record.events.name} ({format(new Date(record.events.date), "MMM dd, yyyy")})
+            </TableCell>
+            <TableCell>{record.role}</TableCell>
+            <TableCell>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(record.id)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))
+      default:
+        return null
     }
   }
 
-  const handleDelete = async (table: string, id: string) => {
-    try {
-      const { error } = await supabase
-        .from(table as any)
-        .delete()
-        .eq("id", id)
-
-      if (error) throw error
-
-      toast({
-        title: "Success",
-        description: "Record deleted successfully",
-      })
-
-      fetchAllData() // Refresh data
-    } catch (error) {
-      console.error("Error deleting record:", error)
-      toast({
-        title: "Error",
-        description: "Failed to delete record",
-        variant: "destructive",
-      })
+  const renderTableHeaders = () => {
+    switch (recordType) {
+      case "members":
+        return (
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "events":
+        return (
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Time</TableHead>
+            <TableHead>Location</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "donations":
+        return (
+          <TableRow>
+            <TableHead>Amount</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Member</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "ministries":
+        return (
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "registrations":
+        return (
+          <TableRow>
+            <TableHead>Member</TableHead>
+            <TableHead>Event</TableHead>
+            <TableHead>Registration Date</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "sermons":
+        return (
+          <TableRow>
+            <TableHead>Title</TableHead>
+            <TableHead>Speaker</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>URL</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "attendance":
+        return (
+          <TableRow>
+            <TableHead>Member</TableHead>
+            <TableHead>Event</TableHead>
+            <TableHead>Timestamp</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      case "volunteers":
+        return (
+          <TableRow>
+            <TableHead>Member</TableHead>
+            <TableHead>Event</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        )
+      default:
+        return null
     }
-  }
-
-  if (loading) {
-    return (
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-        </div>
-      </main>
-    )
   }
 
   return (
@@ -175,28 +332,22 @@ export function RecordsManager() {
       <Tabs defaultValue="members" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="members" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Members ({members.length})
+            Members
           </TabsTrigger>
           <TabsTrigger value="events" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Events ({events.length})
+            Events
           </TabsTrigger>
           <TabsTrigger value="registrations" className="flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            Registrations ({eventRegistrations.length})
+            Registrations
           </TabsTrigger>
           <TabsTrigger value="donations" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Donations ({donations.length})
+            Donations
           </TabsTrigger>
           <TabsTrigger value="ministries" className="flex items-center gap-2">
-            <Church className="h-4 w-4" />
-            Ministries ({ministries.length})
+            Ministries
           </TabsTrigger>
           <TabsTrigger value="sermons" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            Sermons ({sermons.length})
+            Sermons
           </TabsTrigger>
         </TabsList>
 
@@ -205,50 +356,12 @@ export function RecordsManager() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Member Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Member
-              </Button>
+              <Button>Add Member</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Join Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {members.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        {member.first_name} {member.last_name}
-                      </TableCell>
-                      <TableCell>{member.email || "N/A"}</TableCell>
-                      <TableCell>{member.phone || "N/A"}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{member.membership_status || "Unknown"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {member.join_date ? format(new Date(member.join_date), "MMM dd, yyyy") : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDelete("members", member.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
               </Table>
             </CardContent>
           </Card>
@@ -259,48 +372,12 @@ export function RecordsManager() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Event Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Event
-              </Button>
+              <Button>Add Event</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Ministry</TableHead>
-                    <TableHead>Registration Required</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell className="font-medium">{event.title}</TableCell>
-                      <TableCell>{format(new Date(event.event_date), "MMM dd, yyyy HH:mm")}</TableCell>
-                      <TableCell>{event.location || "N/A"}</TableCell>
-                      <TableCell>{event.ministries?.name || "N/A"}</TableCell>
-                      <TableCell>
-                        <Badge variant={event.registration_required ? "default" : "secondary"}>
-                          {event.registration_required ? "Yes" : "No"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDelete("events", event.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
               </Table>
             </CardContent>
           </Card>
@@ -311,56 +388,12 @@ export function RecordsManager() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Event Registration Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Registration
-              </Button>
+              <Button>Add Registration</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Registration Date</TableHead>
-                    <TableHead>Attended</TableHead>
-                    <TableHead>Payment Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {eventRegistrations.map((registration) => (
-                    <TableRow key={registration.id}>
-                      <TableCell>
-                        {registration.members?.first_name} {registration.members?.last_name}
-                      </TableCell>
-                      <TableCell>{registration.events?.title}</TableCell>
-                      <TableCell>{format(new Date(registration.registration_date), "MMM dd, yyyy")}</TableCell>
-                      <TableCell>
-                        <Badge variant={registration.attended ? "default" : "secondary"}>
-                          {registration.attended ? "Yes" : "No"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{registration.payment_status || "N/A"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete("event_registrations", registration.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
               </Table>
             </CardContent>
           </Card>
@@ -371,48 +404,12 @@ export function RecordsManager() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Donation Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Donation
-              </Button>
+              <Button>Add Donation</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Fund</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {donations.map((donation) => (
-                    <TableRow key={donation.id}>
-                      <TableCell>
-                        {donation.members?.first_name} {donation.members?.last_name}
-                      </TableCell>
-                      <TableCell className="font-medium">${Number(donation.amount).toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{donation.donation_type || "N/A"}</Badge>
-                      </TableCell>
-                      <TableCell>{donation.fund_designation || "General"}</TableCell>
-                      <TableCell>{format(new Date(donation.donation_date), "MMM dd, yyyy")}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDelete("donations", donation.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
               </Table>
             </CardContent>
           </Card>
@@ -423,52 +420,12 @@ export function RecordsManager() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Ministry Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Ministry
-              </Button>
+              <Button>Add Ministry</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Leader</TableHead>
-                    <TableHead>Meeting Day</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ministries.map((ministry) => (
-                    <TableRow key={ministry.id}>
-                      <TableCell className="font-medium">{ministry.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{ministry.category || "N/A"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {ministry.leader?.first_name} {ministry.leader?.last_name}
-                      </TableCell>
-                      <TableCell>{ministry.meeting_day || "N/A"}</TableCell>
-                      <TableCell>
-                        <Badge variant={ministry.is_active ? "default" : "secondary"}>
-                          {ministry.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDelete("ministries", ministry.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
               </Table>
             </CardContent>
           </Card>
@@ -479,50 +436,44 @@ export function RecordsManager() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Sermon Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Sermon
-              </Button>
+              <Button>Add Sermon</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Speaker</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Series</TableHead>
-                    <TableHead>Published</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sermons.map((sermon) => (
-                    <TableRow key={sermon.id}>
-                      <TableCell className="font-medium">{sermon.title}</TableCell>
-                      <TableCell>{sermon.speaker || "N/A"}</TableCell>
-                      <TableCell>
-                        {sermon.sermon_date ? format(new Date(sermon.sermon_date), "MMM dd, yyyy") : "N/A"}
-                      </TableCell>
-                      <TableCell>{sermon.series_name || "N/A"}</TableCell>
-                      <TableCell>
-                        <Badge variant={sermon.is_published ? "default" : "secondary"}>
-                          {sermon.is_published ? "Published" : "Draft"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDelete("sermons", sermon.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Attendance Tab */}
+        <TabsContent value="attendance">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Attendance Records</CardTitle>
+              <Button>Add Attendance</Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Volunteers Tab */}
+        <TabsContent value="volunteers">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Volunteer Records</CardTitle>
+              <Button>Add Volunteer</Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>{renderTableHeaders()}</TableHeader>
+                <TableBody>{renderTableContent()}</TableBody>
               </Table>
             </CardContent>
           </Card>

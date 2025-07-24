@@ -3,96 +3,90 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { supabase } from "@/integrations/supabase/client"
-import { toast } from "sonner"
+import type { Database } from "@/types/supabase"
 
 export default function AttendanceEntryForm() {
-  const [formData, setFormData] = useState({
-    event_id: "",
-    member_id: "",
-    attendance_date: "",
-    status: "present",
-  })
-  const [events, setEvents] = useState<any[]>([])
-  const [members, setMembers] = useState<any[]>([])
+  const [memberId, setMemberId] = useState<string | null>(null)
+  const [eventId, setEventId] = useState<string | null>(null)
+  const [members, setMembers] = useState<Database["public"]["Tables"]["members"]["Row"][]>([])
+  const [events, setEvents] = useState<Database["public"]["Tables"]["events"]["Row"][]>([])
   const [loading, setLoading] = useState(false)
+  const supabase = createClientComponentClient<Database>()
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: eventsData, error: eventsError } = await supabase.from("events").select("id, name")
-      if (eventsError) {
-        toast.error("Error fetching events: " + eventsError.message)
-      } else {
-        setEvents(eventsData)
-      }
-
       const { data: membersData, error: membersError } = await supabase
         .from("members")
         .select("id, first_name, last_name")
+      const { data: eventsData, error: eventsError } = await supabase.from("events").select("id, name, date")
+
       if (membersError) {
-        toast.error("Error fetching members: " + membersError.message)
+        toast({ title: "Error fetching members", description: membersError.message, variant: "destructive" })
       } else {
-        setMembers(membersData)
+        setMembers(membersData || [])
+      }
+
+      if (eventsError) {
+        toast({ title: "Error fetching events", description: eventsError.message, variant: "destructive" })
+      } else {
+        setEvents(eventsData || [])
       }
     }
     fetchData()
-  }, [])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
-
-  const handleSelectChange = (value: string, id: string) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
+  }, [supabase, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    const { data, error } = await supabase.from("attendance").insert([formData])
+    if (!memberId || !eventId) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both a member and an event.",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    const { data, error } = await supabase.from("attendance").insert([
+      {
+        member_id: memberId,
+        event_id: eventId,
+      },
+    ])
 
     if (error) {
-      toast.error("Error recording attendance: " + error.message)
-    } else {
-      toast.success("Attendance recorded successfully!")
-      setFormData({
-        event_id: "",
-        member_id: "",
-        attendance_date: "",
-        status: "present",
+      toast({
+        title: "Error recording attendance",
+        description: error.message,
+        variant: "destructive",
       })
+    } else {
+      toast({
+        title: "Attendance recorded successfully!",
+        description: "The attendance has been added to the database.",
+      })
+      // Clear form
+      setMemberId(null)
+      setEventId(null)
     }
     setLoading(false)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="event_id">Event</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "event_id")} value={formData.event_id}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select event" />
-          </SelectTrigger>
-          <SelectContent>
-            {events.map((event) => (
-              <SelectItem key={event.id} value={event.id}>
-                {event.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="member_id">Member</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "member_id")} value={formData.member_id}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select member" />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="member">Member</Label>
+        <Select value={memberId || ""} onValueChange={setMemberId}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a member" />
           </SelectTrigger>
           <SelectContent>
             {members.map((member) => (
@@ -103,24 +97,22 @@ export default function AttendanceEntryForm() {
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="attendance_date">Attendance Date</Label>
-        <Input id="attendance_date" type="date" value={formData.attendance_date} onChange={handleChange} required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="status">Status</Label>
-        <Select onValueChange={(value) => handleSelectChange(value, "status")} value={formData.status}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
+      <div>
+        <Label htmlFor="event">Event</Label>
+        <Select value={eventId || ""} onValueChange={setEventId}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select an event" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="present">Present</SelectItem>
-            <SelectItem value="absent">Absent</SelectItem>
-            <SelectItem value="excused">Excused</SelectItem>
+            {events.map((event) => (
+              <SelectItem key={event.id} value={event.id}>
+                {event.name} ({event.date})
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" className="md:col-span-2" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Recording..." : "Record Attendance"}
       </Button>
     </form>

@@ -2,9 +2,9 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "./providers"
-import { Toaster } from "@/components/ui/sonner"
+import { ThemeProvider } from "@/app/providers"
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import Navbar from "@/components/Navbar"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -24,10 +24,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <Navbar />
-          <main className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center p-4">{children}</main>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1 container mx-auto py-8">{children}</main>
+          </div>
           <ShadcnToaster />
-          <Toaster />
+          <SonnerToaster />
         </ThemeProvider>
       </body>
     </html>
