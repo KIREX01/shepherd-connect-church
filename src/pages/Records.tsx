@@ -77,67 +77,23 @@ export default function Records() {
   }, []);
 
   const fetchAllData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Fetch member registrations
-      const { data: memberData, error: memberError } = await supabase
-        .from('member_registrations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (memberError) throw memberError;
-
-      // Fetch events
-      const { data: eventsData, error: eventsError } = await supabase
-        .from('events')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (eventsError) throw eventsError;
-
-      // Fetch attendance with events
-      const { data: attendanceData, error: attendanceError } = await supabase
-        .from('attendance')
-        .select(`
-          *,
-          events(title)
-        `)
-        .order('recorded_at', { ascending: false });
-
-      if (attendanceError) throw attendanceError;
-
-      // Fetch contributions 
-      const { data: contributionsData, error: contributionsError } = await supabase
-        .from('contributions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (contributionsError) throw contributionsError;
-
-      // Fetch all profiles to match with attendance and contributions
-      const { data: allProfiles, error: profilesForMatchError } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name');
-
-      if (profilesForMatchError) throw profilesForMatchError;
-
-      // Combine attendance data with profile names
-      const attendanceWithProfiles = attendanceData?.map(record => ({
-        ...record,
-        profiles: allProfiles?.find(p => p.user_id === record.user_id) || null
-      })) || [];
-
-      // Combine contributions data with profile names  
-      const contributionsWithProfiles = contributionsData?.map(record => ({
-        ...record,
-        profiles: allProfiles?.find(p => p.user_id === record.user_id) || null
-      })) || [];
-
+      // Members
+      const { data: memberData } = await supabase.from('member_registrations').select('*').order('created_at', { ascending: false });
       setMemberRegistrations(memberData || []);
+
+      // Events
+      const { data: eventsData } = await supabase.from('events').select('*').order('event_date', { ascending: false });
       setEvents(eventsData || []);
-      setAttendance(attendanceWithProfiles);
-      setContributions(contributionsWithProfiles);
+
+      // Attendance
+      const { data: attendanceData } = await supabase.from('attendance').select('*').order('service_date', { ascending: false });
+      setAttendance(attendanceData || []);
+
+      // Contributions
+      const { data: contributionsData } = await supabase.from('contributions').select('*').order('contribution_date', { ascending: false });
+      setContributions(contributionsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
