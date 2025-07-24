@@ -14,6 +14,12 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import { TabsContent } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit, Trash2 } from "lucide-react";
 
 const memberSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -46,20 +52,38 @@ export function MemberRegistrationForm() {
   });
 
   const onSubmit = async (data: MemberFormData) => {
-    try {
-      // TODO: Implement API call to save member data
-      console.log("Member data:", data);
-      toast({
-        title: "Member registered successfully",
-        description: `${data.firstName} ${data.lastName} has been added to the church directory.`,
-      });
-      form.reset();
-    } catch (error) {
+    const mappedData = {
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      date_of_birth: data.dateOfBirth instanceof Date ? data.dateOfBirth.toISOString().split("T")[0] : data.dateOfBirth,
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      zip_code: data.zipCode,
+      membership_type: data.membershipType,
+      emergency_contact_name: data.emergencyContactName,
+      emergency_contact_phone: data.emergencyContactPhone,
+      notes: data.notes ?? "",
+    };
+
+    const { error } = await supabase
+      .from("member_registrations")
+      .insert([mappedData]);
+
+    if (error) {
       toast({
         title: "Error",
         description: "Failed to register member. Please try again.",
         variant: "destructive",
       });
+    } else {
+      toast({
+        title: "Member registered successfully",
+        description: `${data.firstName} ${data.lastName} has been added to the church directory.`,
+      });
+      form.reset();
     }
   };
 
@@ -313,5 +337,116 @@ export function MemberRegistrationForm() {
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+export function MemberRecords() {
+  const [memberRegistrations, setMemberRegistrations] = React.useState<any[]>([]);
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    const fetchMembers = async () => {
+      const { data, error } = await supabase
+        .from("member_registrations")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch member records.",
+          variant: "destructive",
+        });
+      } else {
+        setMemberRegistrations(data || []);
+      }
+    };
+    fetchMembers();
+  }, [toast]);
+
+  const handleDelete = async (id: number) => {
+    const { error } = await supabase
+      .from("member_registrations")
+      .delete()
+      .eq("id", String(id));
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete record. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Record deleted",
+        description: "The member record has been removed.",
+      });
+      // Refresh the list after deletion
+      setMemberRegistrations((prev) => prev.filter((m) => m.id !== id));
+    }
+  };
+
+  return (
+    <TabsContent value="members">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Member Records</CardTitle>
+          <Link to="/forms?form=member">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Member
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Membership Type</TableHead>
+                <TableHead>Date of Birth</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {memberRegistrations.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    {member.first_name} {member.last_name}
+                  </TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{member.phone}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {member.membership_type.replace('_', ' ')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(member.date_of_birth), 'MMM dd, yyyy')}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Link to={`/forms?form=member&id=${member.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDelete(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </TabsContent>
   );
 }

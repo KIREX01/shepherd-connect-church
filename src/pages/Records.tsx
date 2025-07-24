@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
+import { Navbar } from "@/components/Navbar";
+import { Link } from "react-router-dom";
 
 interface MemberRegistration {
   id: string;
@@ -182,268 +184,271 @@ export default function Records() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Records Management</h1>
-        <p className="text-muted-foreground">Admin Dashboard - Manage all form submissions</p>
+    <>
+      <Navbar />
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Records Management</h1>
+          <p className="text-muted-foreground">Admin Dashboard - Manage all form submissions</p>
+        </div>
+
+        <Tabs defaultValue="members" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="members" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Members ({memberRegistrations.length})
+            </TabsTrigger>
+            <TabsTrigger value="events" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Events ({events.length})
+            </TabsTrigger>
+            <TabsTrigger value="attendance" className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" />
+              Attendance ({attendance.length})
+            </TabsTrigger>
+            <TabsTrigger value="contributions" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Contributions ({contributions.length})
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Members Tab */}
+          <TabsContent value="members">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Member Records</CardTitle>
+                <Button> 
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Member
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Membership Type</TableHead>
+                      <TableHead>Date of Birth</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {memberRegistrations.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          {member.first_name} {member.last_name}
+                        </TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>{member.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {member.membership_type.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(member.date_of_birth), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete('member_registrations', member.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Events Tab */}
+          <TabsContent value="events">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Event Records</CardTitle>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Event
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {events.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell className="font-medium">{event.title}</TableCell>
+                        <TableCell>
+                          {format(new Date(event.event_date), 'MMM dd, yyyy HH:mm')}
+                        </TableCell>
+                        <TableCell>{event.location || 'N/A'}</TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {event.description || 'No description'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete('events', event.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Attendance Tab */}
+          <TabsContent value="attendance">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Attendance Records</CardTitle>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Attendance
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member</TableHead>
+                      <TableHead>Event</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Recorded Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attendance.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell>
+                          {record.profiles?.first_name} {record.profiles?.last_name}
+                        </TableCell>
+                        <TableCell>{record.events?.title}</TableCell>
+                        <TableCell>
+                          <Badge variant={record.attended ? "default" : "secondary"}>
+                            {record.attended ? 'Present' : 'Absent'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete('attendance', record.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Contributions Tab */}
+          <TabsContent value="contributions">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Contribution Records</CardTitle>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Contribution
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contributions.map((contribution) => (
+                      <TableRow key={contribution.id}>
+                        <TableCell>
+                          {contribution.profiles?.first_name} {contribution.profiles?.last_name}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          ${Number(contribution.amount).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {contribution.contribution_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(contribution.contribution_date), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {contribution.notes || 'No notes'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete('contributions', contribution.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs defaultValue="members" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="members" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Members ({memberRegistrations.length})
-          </TabsTrigger>
-          <TabsTrigger value="events" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Events ({events.length})
-          </TabsTrigger>
-          <TabsTrigger value="attendance" className="flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            Attendance ({attendance.length})
-          </TabsTrigger>
-          <TabsTrigger value="contributions" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Contributions ({contributions.length})
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Members Tab */}
-        <TabsContent value="members">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Member Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Member
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Membership Type</TableHead>
-                    <TableHead>Date of Birth</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {memberRegistrations.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        {member.first_name} {member.last_name}
-                      </TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>{member.phone}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {member.membership_type.replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(member.date_of_birth), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('member_registrations', member.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Events Tab */}
-        <TabsContent value="events">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Event Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Event
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell className="font-medium">{event.title}</TableCell>
-                      <TableCell>
-                        {format(new Date(event.event_date), 'MMM dd, yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell>{event.location || 'N/A'}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {event.description || 'No description'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('events', event.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Attendance Tab */}
-        <TabsContent value="attendance">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Attendance Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Attendance
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Recorded Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {attendance.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>
-                        {record.profiles?.first_name} {record.profiles?.last_name}
-                      </TableCell>
-                      <TableCell>{record.events?.title}</TableCell>
-                      <TableCell>
-                        <Badge variant={record.attended ? "default" : "secondary"}>
-                          {record.attended ? 'Present' : 'Absent'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('attendance', record.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Contributions Tab */}
-        <TabsContent value="contributions">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Contribution Records</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Contribution
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Notes</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contributions.map((contribution) => (
-                    <TableRow key={contribution.id}>
-                      <TableCell>
-                        {contribution.profiles?.first_name} {contribution.profiles?.last_name}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        ${Number(contribution.amount).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {contribution.contribution_type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(contribution.contribution_date), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {contribution.notes || 'No notes'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('contributions', contribution.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+    </>
   );
 }

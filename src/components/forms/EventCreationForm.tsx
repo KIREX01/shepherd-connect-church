@@ -15,6 +15,7 @@ import { CalendarIcon, Clock, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const eventSchema = z.object({
   title: z.string().min(3, "Event title must be at least 3 characters"),
@@ -57,8 +58,39 @@ export function EventCreationForm() {
 
   const onSubmit = async (data: EventFormData) => {
     try {
-      // TODO: Implement API call to save event data
-      console.log("Event data:", data);
+      // Prepare data for Supabase (convert eventDate to ISO string, etc.)
+      // You may need to get the current user's ID for created_by; adjust as needed.
+      const user = supabase.auth.getUser ? (await supabase.auth.getUser()).data.user : null;
+      const createdBy = user ? user.id : "anonymous";
+
+      const eventPayload = {
+        title: data.title,
+        description: data.description,
+        event_date: data.eventDate.toISOString(),
+        start_time: data.startTime,
+        end_time: data.endTime,
+        location: data.location,
+        category: data.category,
+        max_attendees: data.maxAttendees ?? null,
+        registration_required: data.registrationRequired,
+        cost: data.cost ?? null,
+        contact_person: data.contactPerson,
+        contact_email: data.contactEmail,
+        contact_phone: data.contactPhone || null,
+        is_public: data.isPublic,
+        requires_childcare: data.requiresChildcare,
+        notes: data.notes || null,
+        created_by: createdBy,
+      };
+
+      const { error } = await supabase
+        .from("events")
+        .insert([eventPayload]);
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Event created successfully",
         description: `${data.title} has been scheduled for ${format(data.eventDate, "PPP")}.`,
