@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database } from 'lucide-react';

@@ -1,210 +1,200 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign } from 'lucide-react';
-import { format } from 'date-fns';
+"use client"
 
-interface MemberRegistration {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  date_of_birth: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  membership_type: string;
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
-  notes: string | null;
-  recorded_by: string | null;
-  created_at: string;
-  updated_at: string;
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign, Church, BookOpen } from "lucide-react"
+import { format } from "date-fns"
+import type { Tables } from "@/integrations/supabase/types"
+
+interface MemberWithDetails extends Tables<"members"> {}
+
+interface EventWithDetails extends Tables<"events"> {
+  ministries?: { name: string } | null
 }
 
-interface Event {
-  id: string;
-  title: string;
-  description: string | null;
-  event_date: string;
-  location: string | null;
-  created_by: string;
-  created_at: string;
+interface DonationWithMember extends Tables<"donations"> {
+  members?: { first_name: string; last_name: string } | null
 }
 
-interface Attendance {
-  id: string;
-  user_id: string;
-  event_id: string;
-  attended: boolean;
-  recorded_by: string;
-  recorded_at: string;
-  events?: { title: string };
-  profiles?: { first_name: string | null; last_name: string | null };
+interface EventRegistrationWithDetails extends Tables<"event_registrations"> {
+  events?: { title: string } | null
+  members?: { first_name: string; last_name: string } | null
 }
 
-interface Contribution {
-  id: string;
-  user_id: string;
-  amount: number;
-  contribution_type: string;
-  contribution_date: string;
-  notes: string | null;
-  recorded_by: string;
-  created_at: string;
-  profiles?: { first_name: string | null; last_name: string | null };
+interface MinistryWithLeader extends Tables<"ministries"> {
+  leader?: { first_name: string; last_name: string } | null
 }
+
+interface SermonWithDetails extends Tables<"sermons"> {}
 
 export default function Records() {
-  const [memberRegistrations, setMemberRegistrations] = useState<MemberRegistration[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
-  const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [members, setMembers] = useState<MemberWithDetails[]>([])
+  const [events, setEvents] = useState<EventWithDetails[]>([])
+  const [donations, setDonations] = useState<DonationWithMember[]>([])
+  const [eventRegistrations, setEventRegistrations] = useState<EventRegistrationWithDetails[]>([])
+  const [ministries, setMinistries] = useState<MinistryWithLeader[]>([])
+  const [sermons, setSermons] = useState<SermonWithDetails[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    fetchAllData()
+  }, [])
 
   const fetchAllData = async () => {
     try {
-      setLoading(true);
-      
-      // Fetch member registrations
-      const { data: memberData, error: memberError } = await supabase
-        .from('member_registrations')
-        .select('*')
-        .order('created_at', { ascending: false });
+      setLoading(true)
 
-      if (memberError) throw memberError;
+      // Fetch members
+      const { data: membersData, error: membersError } = await supabase
+        .from("members")
+        .select("*")
+        .order("created_at", { ascending: false })
 
-      // Fetch events
+      if (membersError) throw membersError
+
+      // Fetch events with ministry info
       const { data: eventsData, error: eventsError } = await supabase
-        .from('events')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (eventsError) throw eventsError;
-
-      // Fetch attendance with events
-      const { data: attendanceData, error: attendanceError } = await supabase
-        .from('attendance')
+        .from("events")
         .select(`
           *,
-          events(title)
+          ministries(name)
         `)
-        .order('recorded_at', { ascending: false });
+        .order("created_at", { ascending: false })
 
-      if (attendanceError) throw attendanceError;
+      if (eventsError) throw eventsError
 
-      // Fetch contributions 
-      const { data: contributionsData, error: contributionsError } = await supabase
-        .from('contributions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch donations with member info
+      const { data: donationsData, error: donationsError } = await supabase
+        .from("donations")
+        .select(`
+          *,
+          members(first_name, last_name)
+        `)
+        .order("created_at", { ascending: false })
 
-      if (contributionsError) throw contributionsError;
+      if (donationsError) throw donationsError
 
-      // Fetch all profiles to match with attendance and contributions
-      const { data: allProfiles, error: profilesForMatchError } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name');
+      // Fetch event registrations with event and member info
+      const { data: registrationsData, error: registrationsError } = await supabase
+        .from("event_registrations")
+        .select(`
+          *,
+          events(title),
+          members(first_name, last_name)
+        `)
+        .order("registration_date", { ascending: false })
 
-      if (profilesForMatchError) throw profilesForMatchError;
+      if (registrationsError) throw registrationsError
 
-      // Combine attendance data with profile names
-      const attendanceWithProfiles = attendanceData?.map(record => ({
-        ...record,
-        profiles: allProfiles?.find(p => p.user_id === record.user_id) || null
-      })) || [];
+      // Fetch ministries with leader info
+      const { data: ministriesData, error: ministriesError } = await supabase
+        .from("ministries")
+        .select(`
+          *,
+          leader:members!ministries_leader_id_fkey(first_name, last_name)
+        `)
+        .order("created_at", { ascending: false })
 
-      // Combine contributions data with profile names  
-      const contributionsWithProfiles = contributionsData?.map(record => ({
-        ...record,
-        profiles: allProfiles?.find(p => p.user_id === record.user_id) || null
-      })) || [];
+      if (ministriesError) throw ministriesError
 
-      setMemberRegistrations(memberData || []);
-      setEvents(eventsData || []);
-      setAttendance(attendanceWithProfiles);
-      setContributions(contributionsWithProfiles);
+      // Fetch sermons
+      const { data: sermonsData, error: sermonsError } = await supabase
+        .from("sermons")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (sermonsError) throw sermonsError
+
+      setMembers(membersData || [])
+      setEvents(eventsData || [])
+      setDonations(donationsData || [])
+      setEventRegistrations(registrationsData || [])
+      setMinistries(ministriesData || [])
+      setSermons(sermonsData || [])
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error)
       toast({
         title: "Error",
         description: "Failed to fetch records data",
         variant: "destructive",
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance' | 'contributions', id: string) => {
+  const handleDelete = async (table: string, id: string) => {
     try {
       const { error } = await supabase
-        .from(table)
+        .from(table as any)
         .delete()
-        .eq('id', id);
+        .eq("id", id)
 
-      if (error) throw error;
+      if (error) throw error
 
       toast({
         title: "Success",
         description: "Record deleted successfully",
-      });
+      })
 
-      fetchAllData(); // Refresh data
+      fetchAllData() // Refresh data
     } catch (error) {
-      console.error('Error deleting record:', error);
+      console.error("Error deleting record:", error)
       toast({
         title: "Error",
         description: "Failed to delete record",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Records Management</h1>
-        <p className="text-muted-foreground">Admin Dashboard - Manage all form submissions</p>
+        <p className="text-muted-foreground">Admin Dashboard - Manage all church records</p>
       </div>
 
       <Tabs defaultValue="members" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="members" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Members ({memberRegistrations.length})
+            Members ({members.length})
           </TabsTrigger>
           <TabsTrigger value="events" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Events ({events.length})
           </TabsTrigger>
-          <TabsTrigger value="attendance" className="flex items-center gap-2">
+          <TabsTrigger value="registrations" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
-            Attendance ({attendance.length})
+            Registrations ({eventRegistrations.length})
           </TabsTrigger>
-          <TabsTrigger value="contributions" className="flex items-center gap-2">
+          <TabsTrigger value="donations" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Contributions ({contributions.length})
+            Donations ({donations.length})
+          </TabsTrigger>
+          <TabsTrigger value="ministries" className="flex items-center gap-2">
+            <Church className="h-4 w-4" />
+            Ministries ({ministries.length})
+          </TabsTrigger>
+          <TabsTrigger value="sermons" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Sermons ({sermons.length})
           </TabsTrigger>
         </TabsList>
 
@@ -225,37 +215,31 @@ export default function Records() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Membership Type</TableHead>
-                    <TableHead>Date of Birth</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Join Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {memberRegistrations.map((member) => (
+                  {members.map((member) => (
                     <TableRow key={member.id}>
                       <TableCell>
                         {member.first_name} {member.last_name}
                       </TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>{member.phone}</TableCell>
+                      <TableCell>{member.email || "N/A"}</TableCell>
+                      <TableCell>{member.phone || "N/A"}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {member.membership_type.replace('_', ' ')}
-                        </Badge>
+                        <Badge variant="outline">{member.membership_status || "Unknown"}</Badge>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(member.date_of_birth), 'MMM dd, yyyy')}
+                        {member.join_date ? format(new Date(member.join_date), "MMM dd, yyyy") : "N/A"}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('member_registrations', member.id)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleDelete("members", member.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -285,7 +269,8 @@ export default function Records() {
                     <TableHead>Title</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Ministry</TableHead>
+                    <TableHead>Registration Required</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -293,23 +278,20 @@ export default function Records() {
                   {events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell className="font-medium">{event.title}</TableCell>
+                      <TableCell>{format(new Date(event.event_date), "MMM dd, yyyy HH:mm")}</TableCell>
+                      <TableCell>{event.location || "N/A"}</TableCell>
+                      <TableCell>{event.ministries?.name || "N/A"}</TableCell>
                       <TableCell>
-                        {format(new Date(event.event_date), 'MMM dd, yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell>{event.location || 'N/A'}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {event.description || 'No description'}
+                        <Badge variant={event.registration_required ? "default" : "secondary"}>
+                          {event.registration_required ? "Yes" : "No"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('events', event.id)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleDelete("events", event.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -322,14 +304,14 @@ export default function Records() {
           </Card>
         </TabsContent>
 
-        {/* Attendance Tab */}
-        <TabsContent value="attendance">
+        {/* Event Registrations Tab */}
+        <TabsContent value="registrations">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Attendance Records</CardTitle>
+              <CardTitle>Event Registration Records</CardTitle>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Attendance
+                Add Registration
               </Button>
             </CardHeader>
             <CardContent>
@@ -338,35 +320,37 @@ export default function Records() {
                   <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Event</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Recorded Date</TableHead>
+                    <TableHead>Registration Date</TableHead>
+                    <TableHead>Attended</TableHead>
+                    <TableHead>Payment Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {attendance.map((record) => (
-                    <TableRow key={record.id}>
+                  {eventRegistrations.map((registration) => (
+                    <TableRow key={registration.id}>
                       <TableCell>
-                        {record.profiles?.first_name} {record.profiles?.last_name}
+                        {registration.members?.first_name} {registration.members?.last_name}
                       </TableCell>
-                      <TableCell>{record.events?.title}</TableCell>
+                      <TableCell>{registration.events?.title}</TableCell>
+                      <TableCell>{format(new Date(registration.registration_date), "MMM dd, yyyy")}</TableCell>
                       <TableCell>
-                        <Badge variant={record.attended ? "default" : "secondary"}>
-                          {record.attended ? 'Present' : 'Absent'}
+                        <Badge variant={registration.attended ? "default" : "secondary"}>
+                          {registration.attended ? "Yes" : "No"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
+                        <Badge variant="outline">{registration.payment_status || "N/A"}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
-                            onClick={() => handleDelete('attendance', record.id)}
+                            onClick={() => handleDelete("event_registrations", registration.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -380,14 +364,14 @@ export default function Records() {
           </Card>
         </TabsContent>
 
-        {/* Contributions Tab */}
-        <TabsContent value="contributions">
+        {/* Donations Tab */}
+        <TabsContent value="donations">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Contribution Records</CardTitle>
+              <CardTitle>Donation Records</CardTitle>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Contribution
+                Add Donation
               </Button>
             </CardHeader>
             <CardContent>
@@ -397,41 +381,139 @@ export default function Records() {
                     <TableHead>Member</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Fund</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Notes</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {contributions.map((contribution) => (
-                    <TableRow key={contribution.id}>
+                  {donations.map((donation) => (
+                    <TableRow key={donation.id}>
                       <TableCell>
-                        {contribution.profiles?.first_name} {contribution.profiles?.last_name}
+                        {donation.members?.first_name} {donation.members?.last_name}
                       </TableCell>
-                      <TableCell className="font-medium">
-                        ${Number(contribution.amount).toFixed(2)}
+                      <TableCell className="font-medium">${Number(donation.amount).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{donation.donation_type || "N/A"}</Badge>
+                      </TableCell>
+                      <TableCell>{donation.fund_designation || "General"}</TableCell>
+                      <TableCell>{format(new Date(donation.donation_date), "MMM dd, yyyy")}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete("donations", donation.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Ministries Tab */}
+        <TabsContent value="ministries">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Ministry Records</CardTitle>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Ministry
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Leader</TableHead>
+                    <TableHead>Meeting Day</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ministries.map((ministry) => (
+                    <TableRow key={ministry.id}>
+                      <TableCell className="font-medium">{ministry.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{ministry.category || "N/A"}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {contribution.contribution_type}
+                        {ministry.leader?.first_name} {ministry.leader?.last_name}
+                      </TableCell>
+                      <TableCell>{ministry.meeting_day || "N/A"}</TableCell>
+                      <TableCell>
+                        <Badge variant={ministry.is_active ? "default" : "secondary"}>
+                          {ministry.is_active ? "Active" : "Inactive"}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(contribution.contribution_date), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {contribution.notes || 'No notes'}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('contributions', contribution.id)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleDelete("ministries", ministry.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Sermons Tab */}
+        <TabsContent value="sermons">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Sermon Records</CardTitle>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Sermon
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Speaker</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Series</TableHead>
+                    <TableHead>Published</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sermons.map((sermon) => (
+                    <TableRow key={sermon.id}>
+                      <TableCell className="font-medium">{sermon.title}</TableCell>
+                      <TableCell>{sermon.speaker || "N/A"}</TableCell>
+                      <TableCell>
+                        {sermon.sermon_date ? format(new Date(sermon.sermon_date), "MMM dd, yyyy") : "N/A"}
+                      </TableCell>
+                      <TableCell>{sermon.series_name || "N/A"}</TableCell>
+                      <TableCell>
+                        <Badge variant={sermon.is_published ? "default" : "secondary"}>
+                          {sermon.is_published ? "Published" : "Draft"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete("sermons", sermon.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -445,5 +527,5 @@ export default function Records() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }
