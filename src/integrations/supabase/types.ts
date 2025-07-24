@@ -115,6 +115,66 @@ export type Database = {
         }
         Relationships: []
       }
+      member_registrations: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          date_of_birth: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          first_name: string
+          id: string
+          last_name: string
+          membership_type: string
+          notes: string | null
+          phone: string
+          recorded_by: string | null
+          state: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          date_of_birth: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          first_name: string
+          id?: string
+          last_name: string
+          membership_type: string
+          notes?: string | null
+          phone: string
+          recorded_by?: string | null
+          state: string
+          updated_at?: string
+          zip_code: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          date_of_birth?: string
+          email?: string
+          emergency_contact_name?: string
+          emergency_contact_phone?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          membership_type?: string
+          notes?: string | null
+          phone?: string
+          recorded_by?: string | null
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null

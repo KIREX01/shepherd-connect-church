@@ -9,16 +9,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 
-interface Profile {
+interface MemberRegistration {
   id: string;
-  user_id: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  address: string | null;
-  date_of_birth: string | null;
-  membership_date: string | null;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  membership_type: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  notes: string | null;
+  recorded_by: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface Event {
@@ -55,7 +63,7 @@ interface Contribution {
 }
 
 export default function Records() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [memberRegistrations, setMemberRegistrations] = useState<MemberRegistration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
@@ -70,13 +78,13 @@ export default function Records() {
     try {
       setLoading(true);
       
-      // Fetch profiles (members)
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
+      // Fetch member registrations
+      const { data: memberData, error: memberError } = await supabase
+        .from('member_registrations')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (profilesError) throw profilesError;
+      if (memberError) throw memberError;
 
       // Fetch events
       const { data: eventsData, error: eventsError } = await supabase
@@ -124,7 +132,7 @@ export default function Records() {
         profiles: allProfiles?.find(p => p.user_id === record.user_id) || null
       })) || [];
 
-      setProfiles(profilesData || []);
+      setMemberRegistrations(memberData || []);
       setEvents(eventsData || []);
       setAttendance(attendanceWithProfiles);
       setContributions(contributionsWithProfiles);
@@ -140,7 +148,7 @@ export default function Records() {
     }
   };
 
-  const handleDelete = async (table: 'profiles' | 'events' | 'attendance' | 'contributions', id: string) => {
+  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance' | 'contributions', id: string) => {
     try {
       const { error } = await supabase
         .from(table)
@@ -184,7 +192,7 @@ export default function Records() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="members" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Members ({profiles.length})
+            Members ({memberRegistrations.length})
           </TabsTrigger>
           <TabsTrigger value="events" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -215,24 +223,28 @@ export default function Records() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
+                    <TableHead>Membership Type</TableHead>
                     <TableHead>Date of Birth</TableHead>
-                    <TableHead>Membership Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {profiles.map((profile) => (
-                    <TableRow key={profile.id}>
+                  {memberRegistrations.map((member) => (
+                    <TableRow key={member.id}>
                       <TableCell>
-                        {profile.first_name} {profile.last_name}
+                        {member.first_name} {member.last_name}
                       </TableCell>
-                      <TableCell>{profile.phone || 'N/A'}</TableCell>
+                      <TableCell>{member.email}</TableCell>
+                      <TableCell>{member.phone}</TableCell>
                       <TableCell>
-                        {profile.date_of_birth ? format(new Date(profile.date_of_birth), 'MMM dd, yyyy') : 'N/A'}
+                        <Badge variant="outline">
+                          {member.membership_type.replace('_', ' ')}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        {profile.membership_date ? format(new Date(profile.membership_date), 'MMM dd, yyyy') : 'N/A'}
+                        {format(new Date(member.date_of_birth), 'MMM dd, yyyy')}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -242,7 +254,7 @@ export default function Records() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => handleDelete('profiles', profile.id)}
+                            onClick={() => handleDelete('member_registrations', member.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
