@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 export function Navbar() {
@@ -53,16 +53,31 @@ export function Navbar() {
               </Link>
 
               {(userRole === 'admin' || userRole === 'pastor') && (
-                <Link to="/members">
-                  <Button 
-                    variant={isActive('/members') ? 'default' : 'ghost'} 
-                    size="sm"
-                    className="flex items-center space-x-2"
-                  >
-                    <Users className="h-4 w-4" />
-                    <span>Members</span>
-                  </Button>
-                </Link>
+                <>
+                  <Link to="/members">
+                    <Button 
+                      variant={isActive('/members') ? 'default' : 'ghost'} 
+                      size="sm"
+                      className="flex items-center space-x-2"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Members</span>
+                    </Button>
+                  </Link>
+
+                  {userRole === 'admin' && (
+                    <Link to="/records">
+                      <Button 
+                        variant={isActive('/records') ? 'default' : 'ghost'} 
+                        size="sm"
+                        className="flex items-center space-x-2"
+                      >
+                        <Database className="h-4 w-4" />
+                        <span>Records</span>
+                      </Button>
+                    </Link>
+                  )}
+                </>
               )}
             </div>
 

@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Forms from "./pages/Forms";
 import Members from "./pages/Members";
+import Records from "./pages/Records";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="admin">
                   <Members />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/records" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <Records />
                 </ProtectedRoute>
               } 
             />
