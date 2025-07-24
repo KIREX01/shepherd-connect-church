@@ -48,8 +48,6 @@ interface Attendance {
   attended: boolean;
   recorded_by: string;
   recorded_at: string;
-  events?: { title: string };
-  profiles?: { first_name: string | null; last_name: string | null };
 }
 
 interface Contribution {
@@ -88,7 +86,10 @@ export default function Records() {
       setEvents(eventsData || []);
 
       // Attendance
-      const { data: attendanceData } = await supabase.from('attendance').select('*').order('service_date', { ascending: false });
+      const { data: attendanceData } = await supabase
+        .from('attendance')
+        .select('*')
+        .order('recorded_at', { ascending: false });
       setAttendance(attendanceData || []);
 
       // Contributions
@@ -296,28 +297,22 @@ export default function Records() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Member</TableHead>
-                      <TableHead>Event</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Recorded Date</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Adults</TableHead>
+                      <TableHead>Children</TableHead>
+                      <TableHead>Visitors</TableHead>
+                      <TableHead>First Time</TableHead>
+                      <TableHead>Notes</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {attendance.map((record) => (
                       <TableRow key={record.id}>
-                        <TableCell>
-                          {record.profiles?.first_name} {record.profiles?.last_name}
-                        </TableCell>
-                        <TableCell>{record.events?.title}</TableCell>
-                        <TableCell>
-                          <Badge variant={record.attended ? "default" : "secondary"}>
-                            {record.attended ? 'Present' : 'Absent'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
-                        </TableCell>
+                        <TableCell>{format(new Date(record.recorded_at), 'MMM dd, yyyy')}</TableCell>
+                        <TableCell>{record.attended ? "Attended" : "Absent"}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm">
