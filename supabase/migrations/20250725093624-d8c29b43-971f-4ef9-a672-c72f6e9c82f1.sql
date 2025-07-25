@@ -105,3 +105,15 @@ CREATE TABLE IF NOT EXISTS public.volunteer_registrations (
     additional_notes text,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Church Finances Table
+CREATE TABLE IF NOT EXISTS public.church_finances (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    type text NOT NULL CHECK (type IN ('income', 'expense')),
+    amount numeric(12,2) NOT NULL,
+    date date NOT NULL,
+    description text,
+    category text,
+    recorded_by text,
+    created_at timestamptz NOT NULL DEFAULT now()
+);

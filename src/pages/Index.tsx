@@ -231,7 +231,7 @@ export default function Index() {
                       Make Contribution
                     </Button>
                   </Link>
-                  <Link to="/forms">
+                  <Link to="/dashboard#events">
                     <Button className="w-full justify-start" variant="outline">
                       <Calendar className="h-4 w-4 mr-2" />
                       View Events

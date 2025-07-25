@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import PrayerRequests from "./pages/PrayerRequests";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from '@/components/ui/theme-provider';
+import ChurchFinances from './pages/ChurchFinances';
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requiredRole="admin">
                     <Records />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/finances" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ChurchFinances />
                   </ProtectedRoute>
                 } 
               />

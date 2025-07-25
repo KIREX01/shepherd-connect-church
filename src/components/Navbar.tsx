@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
@@ -86,16 +86,28 @@ export function Navbar() {
                   </Link>
 
                   {userRole === 'admin' && (
-                    <Link to="/records">
-                      <Button 
-                        variant={isActive('/records') ? 'default' : 'ghost'} 
-                        size="sm"
-                        className="flex items-center space-x-2"
-                      >
-                        <Database className="h-4 w-4" />
-                        <span>Records</span>
-                      </Button>
-                    </Link>
+                    <>
+                      <Link to="/records">
+                        <Button 
+                          variant={isActive('/records') ? 'default' : 'ghost'} 
+                          size="sm"
+                          className="flex items-center space-x-2"
+                        >
+                          <Database className="h-4 w-4" />
+                          <span>Records</span>
+                        </Button>
+                      </Link>
+                      <Link to="/finances">
+                        <Button 
+                          variant={isActive('/finances') ? 'default' : 'ghost'} 
+                          size="sm"
+                          className="flex items-center space-x-2"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                          <span>Finances</span>
+                        </Button>
+                      </Link>
+                    </>
                   )}
                 </>
               )}

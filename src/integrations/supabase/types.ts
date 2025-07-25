@@ -427,6 +427,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      church_finances: {
+        Row: {
+          id: string;
+          type: 'income' | 'expense';
+          amount: number;
+          date: string;
+          description: string | null;
+          category: string | null;
+          recorded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: 'income' | 'expense';
+          amount: number;
+          date: string;
+          description?: string | null;
+          category?: string | null;
+          recorded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          type?: 'income' | 'expense';
+          amount?: number;
+          date?: string;
+          description?: string | null;
+          category?: string | null;
+          recorded_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     }
     Views: {
       [_ in never]: never

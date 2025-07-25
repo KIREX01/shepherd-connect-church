@@ -7,9 +7,19 @@ import { AnnouncementsList } from '@/components/AnnouncementsList';
 import { Calendar, Megaphone, Users, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const { userRole } = useAuth();
+  const [defaultTab, setDefaultTab] = useState('announcements');
+
+  useEffect(() => {
+    if (window.location.hash === '#events') {
+      setDefaultTab('events');
+    } else {
+      setDefaultTab('announcements');
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,7 +51,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <Tabs defaultValue="announcements" className="space-y-6">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="announcements" className="flex items-center gap-2">
               <Megaphone className="h-4 w-4" />
