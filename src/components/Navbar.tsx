@@ -3,10 +3,30 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '@/components/ui/theme-provider';
+import { Sun, Moon, Monitor } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export function Navbar() {
   const { user, signOut, userRole } = useAuth();
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
+        setThemeMenuOpen(false);
+      }
+    }
+    if (themeMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [themeMenuOpen]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -85,6 +105,25 @@ export function Navbar() {
               <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">
                 {userRole}
               </span>
+              {/* Theme Switcher */}
+              <div className="relative" ref={themeMenuRef}>
+                <Button variant="outline" size="icon" className="mr-2" tabIndex={0} aria-label="Theme switcher" onClick={() => setThemeMenuOpen((v) => !v)}>
+                  {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+                </Button>
+                {themeMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-32 bg-card border rounded shadow-lg z-50">
+                    <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'light' ? 'font-bold' : ''}`} onClick={() => { setTheme('light'); setThemeMenuOpen(false); }}>
+                      <Sun className="h-4 w-4 mr-2" /> Light
+                    </button>
+                    <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'dark' ? 'font-bold' : ''}`} onClick={() => { setTheme('dark'); setThemeMenuOpen(false); }}>
+                      <Moon className="h-4 w-4 mr-2" /> Dark
+                    </button>
+                    <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'system' ? 'font-bold' : ''}`} onClick={() => { setTheme('system'); setThemeMenuOpen(false); }}>
+                      <Monitor className="h-4 w-4 mr-2" /> System
+                    </button>
+                  </div>
+                )}
+              </div>
               <Button variant="outline" onClick={handleSignOut} size="sm">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
