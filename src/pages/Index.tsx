@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
-import { Church, Users, Calendar, DollarSign, BarChart3 } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, BarChart3, Heart, Megaphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Index() {
@@ -184,6 +184,18 @@ export default function Index() {
               <CardDescription>Common tasks for church management</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              <Link to="/dashboard">
+                <Button className="w-full justify-start" variant="outline">
+                  <Church className="h-4 w-4 mr-2" />
+                  Church Dashboard
+                </Button>
+              </Link>
+              <Link to="/prayer-requests">
+                <Button className="w-full justify-start" variant="outline">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Prayer Requests
+                </Button>
+              </Link>
               {userRole === 'admin' || userRole === 'pastor' ? (
                 <>
                   <Link to="/members">
@@ -192,10 +204,10 @@ export default function Index() {
                       View Members
                     </Button>
                   </Link>
-                  <Link to="/forms">
+                  <Link to="/records">
                     <Button className="w-full justify-start" variant="outline">
-                      <Users className="h-4 w-4 mr-2" />
-                      Manage Members
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Records Management
                     </Button>
                   </Link>
                   <Link to="/forms">
@@ -208,12 +220,6 @@ export default function Index() {
                     <Button className="w-full justify-start" variant="outline">
                       <Calendar className="h-4 w-4 mr-2" />
                       Schedule Event
-                    </Button>
-                  </Link>
-                  <Link to="/forms">
-                    <Button className="w-full justify-start" variant="outline">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      View Reports
                     </Button>
                   </Link>
                 </>

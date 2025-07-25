@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Forms from "./pages/Forms";
 import Members from "./pages/Members";
 import Records from "./pages/Records";
+import Dashboard from "./pages/Dashboard";
+import PrayerRequests from "./pages/PrayerRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/prayer-requests" 
+              element={
+                <ProtectedRoute>
+                  <PrayerRequests />
                 </ProtectedRoute>
               } 
             />
