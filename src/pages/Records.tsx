@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { Navbar } from "@/components/Navbar";
 import { Link } from "react-router-dom";
+import type { Tables } from '@/integrations/supabase/types';
+
+type VolunteerRecord = Tables<'volunteer_registrations'>;
 
 interface MemberRegistration {
   id: string;
@@ -90,6 +93,7 @@ export default function Records() {
   const [events, setEvents] = useState<Event[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [donationRecords, setDonationRecords] = useState<DonationRecord[]>([]);
+  const [volunteerRecords, setVolunteerRecords] = useState<VolunteerRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -118,6 +122,10 @@ export default function Records() {
       // Donation Records
       const { data: donationData } = await supabase.from('donation_records').select('*').order('donation_date', { ascending: false });
       setDonationRecords(donationData || []);
+
+      // Volunteer Records
+      const { data: volunteerData } = await supabase.from('volunteer_registrations').select('*').order('created_at', { ascending: false });
+      setVolunteerRecords((volunteerData as VolunteerRecord[]) || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -130,28 +138,30 @@ export default function Records() {
     }
   };
 
-  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records', id: string) => {
-    try {
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .eq('id', id);
+  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations', id: string) => {
+    if (table === 'volunteer_registrations' || table === 'member_registrations' || table === 'events' || table === 'attendance_records' || table === 'donation_records') {
+      try {
+        const { error } = await supabase
+          .from(table)
+          .delete()
+          .eq('id', id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Record deleted successfully",
-      });
+        toast({
+          title: "Success",
+          description: "Record deleted successfully",
+        });
 
-      fetchAllData(); // Refresh data
-    } catch (error) {
-      console.error('Error deleting record:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete record",
-        variant: "destructive",
-      });
+        fetchAllData(); // Refresh data
+      } catch (error) {
+        console.error('Error deleting record:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete record",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -173,7 +183,7 @@ export default function Records() {
         </div>
 
         <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="members" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Members ({memberRegistrations.length})
@@ -189,6 +199,10 @@ export default function Records() {
             <TabsTrigger value="contributions" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               Donations ({donationRecords.length})
+            </TabsTrigger>
+            <TabsTrigger value="volunteers" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              Volunteers ({volunteerRecords.length})
             </TabsTrigger>
           </TabsList>
 
@@ -451,6 +465,70 @@ export default function Records() {
                               variant="outline" 
                               size="sm"
                               onClick={() => handleDelete('donation_records', donation.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Volunteers Tab */}
+          <TabsContent value="volunteers">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Volunteer Records</CardTitle>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Volunteer
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Availability</TableHead>
+                      <TableHead>Ministry Areas</TableHead>
+                      <TableHead>Emergency Contact</TableHead>
+                      <TableHead>Consent</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {volunteerRecords.map((vol) => (
+                      <TableRow key={vol.id}>
+                        <TableCell>{vol.first_name} {vol.last_name}</TableCell>
+                        <TableCell>{vol.email}</TableCell>
+                        <TableCell>{vol.phone}</TableCell>
+                        <TableCell>{vol.availability.join(', ')}</TableCell>
+                        <TableCell>{vol.ministry_areas.join(', ')}</TableCell>
+                        <TableCell>
+                          {vol.emergency_contact_name}<br/>{vol.emergency_contact_phone}
+                        </TableCell>
+                        <TableCell>
+                          {vol.background_check_consent ? 'Yes' : 'No'}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(vol.created_at), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDelete('volunteer_registrations', vol.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

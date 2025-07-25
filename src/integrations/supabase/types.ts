@@ -376,6 +376,57 @@ export type Database = {
         }
         Relationships: []
       }
+      volunteer_registrations: {
+        Row: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string;
+          availability: string[];
+          ministry_areas: string[];
+          skills: string | null;
+          experience: string | null;
+          emergency_contact_name: string;
+          emergency_contact_phone: string;
+          background_check_consent: boolean;
+          additional_notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string;
+          availability: string[];
+          ministry_areas: string[];
+          skills?: string | null;
+          experience?: string | null;
+          emergency_contact_name: string;
+          emergency_contact_phone: string;
+          background_check_consent: boolean;
+          additional_notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          phone?: string;
+          availability?: string[];
+          ministry_areas?: string[];
+          skills?: string | null;
+          experience?: string | null;
+          emergency_contact_name?: string;
+          emergency_contact_phone?: string;
+          background_check_consent?: boolean;
+          additional_notes?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     }
     Views: {
       [_ in never]: never

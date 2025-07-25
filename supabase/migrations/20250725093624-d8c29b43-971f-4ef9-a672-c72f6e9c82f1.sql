@@ -87,3 +87,21 @@ CREATE TRIGGER update_donation_records_updated_at
 BEFORE UPDATE ON public.donation_records
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Volunteer Registrations Table
+CREATE TABLE IF NOT EXISTS public.volunteer_registrations (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    phone text NOT NULL,
+    availability text[] NOT NULL,
+    ministry_areas text[] NOT NULL,
+    skills text,
+    experience text,
+    emergency_contact_name text NOT NULL,
+    emergency_contact_phone text NOT NULL,
+    background_check_consent boolean NOT NULL,
+    additional_notes text,
+    created_at timestamptz NOT NULL DEFAULT now()
+);

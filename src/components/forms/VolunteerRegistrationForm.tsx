@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Heart, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 
 const volunteerSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -67,8 +69,23 @@ export function VolunteerRegistrationForm() {
 
   const onSubmit = async (data: VolunteerFormData) => {
     try {
-      // TODO: Implement API call to save volunteer data
-      console.log("Volunteer data:", data);
+      const insertData: Tables<'volunteer_registrations'> = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        availability: data.availability,
+        ministry_areas: data.ministryAreas,
+        skills: data.skills || null,
+        experience: data.experience || null,
+        emergency_contact_name: data.emergencyContactName,
+        emergency_contact_phone: data.emergencyContactPhone,
+        background_check_consent: data.backgroundCheckConsent,
+        additional_notes: data.additionalNotes || null,
+        // id and created_at are auto-generated
+      };
+      const { error } = await supabase.from('volunteer_registrations').insert([insertData]);
+      if (error) throw error;
       toast({
         title: "Volunteer registration submitted",
         description: `Thank you ${data.firstName}! We'll contact you soon about volunteer opportunities.`,
