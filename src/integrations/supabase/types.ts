@@ -49,6 +49,51 @@ export type Database = {
           },
         ]
       }
+      attendance_records: {
+        Row: {
+          adult_count: number
+          child_count: number
+          created_at: string
+          first_time_visitors: number
+          id: string
+          recorded_by: string
+          service_date: string
+          service_type: string
+          special_notes: string | null
+          total_attendance: number
+          updated_at: string
+          visitor_count: number
+        }
+        Insert: {
+          adult_count?: number
+          child_count?: number
+          created_at?: string
+          first_time_visitors?: number
+          id?: string
+          recorded_by: string
+          service_date: string
+          service_type: string
+          special_notes?: string | null
+          total_attendance: number
+          updated_at?: string
+          visitor_count?: number
+        }
+        Update: {
+          adult_count?: number
+          child_count?: number
+          created_at?: string
+          first_time_visitors?: number
+          id?: string
+          recorded_by?: string
+          service_date?: string
+          service_type?: string
+          special_notes?: string | null
+          total_attendance?: number
+          updated_at?: string
+          visitor_count?: number
+        }
+        Relationships: []
+      }
       contributions: {
         Row: {
           amount: number
@@ -82,34 +127,127 @@ export type Database = {
         }
         Relationships: []
       }
+      donation_records: {
+        Row: {
+          amount: number
+          category: string
+          check_number: string | null
+          created_at: string
+          donation_date: string
+          donor_email: string | null
+          donor_name: string | null
+          donor_phone: string | null
+          id: string
+          is_anonymous: boolean
+          is_recurring: boolean
+          notes: string | null
+          payment_method: string
+          recorded_by: string
+          tax_deductible: boolean
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          check_number?: string | null
+          created_at?: string
+          donation_date: string
+          donor_email?: string | null
+          donor_name?: string | null
+          donor_phone?: string | null
+          id?: string
+          is_anonymous?: boolean
+          is_recurring?: boolean
+          notes?: string | null
+          payment_method: string
+          recorded_by: string
+          tax_deductible?: boolean
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          check_number?: string | null
+          created_at?: string
+          donation_date?: string
+          donor_email?: string | null
+          donor_name?: string | null
+          donor_phone?: string | null
+          id?: string
+          is_anonymous?: boolean
+          is_recurring?: boolean
+          notes?: string | null
+          payment_method?: string
+          recorded_by?: string
+          tax_deductible?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
+          category: string
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          cost: number | null
           created_at: string
           created_by: string
           description: string | null
+          end_time: string | null
           event_date: string
           id: string
+          is_public: boolean
           location: string | null
+          max_attendees: number | null
+          notes: string | null
+          registration_required: boolean
+          requires_childcare: boolean
+          start_time: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          category?: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          cost?: number | null
           created_at?: string
           created_by: string
           description?: string | null
+          end_time?: string | null
           event_date: string
           id?: string
+          is_public?: boolean
           location?: string | null
+          max_attendees?: number | null
+          notes?: string | null
+          registration_required?: boolean
+          requires_childcare?: boolean
+          start_time?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          category?: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string
           description?: string | null
+          end_time?: string | null
           event_date?: string
           id?: string
+          is_public?: boolean
           location?: string | null
+          max_attendees?: number | null
+          notes?: string | null
+          registration_required?: boolean
+          requires_childcare?: boolean
+          start_time?: string | null
           title?: string
           updated_at?: string
         }

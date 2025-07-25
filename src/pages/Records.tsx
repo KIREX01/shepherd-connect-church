@@ -37,36 +37,59 @@ interface Event {
   description: string | null;
   event_date: string;
   location: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  category: string;
+  max_attendees: number | null;
+  registration_required: boolean;
+  cost: number | null;
+  contact_person: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  is_public: boolean;
+  requires_childcare: boolean;
+  notes: string | null;
   created_by: string;
   created_at: string;
 }
 
-interface Attendance {
+interface AttendanceRecord {
   id: string;
-  user_id: string;
-  event_id: string;
-  attended: boolean;
+  service_date: string;
+  service_type: string;
+  total_attendance: number;
+  adult_count: number;
+  child_count: number;
+  visitor_count: number;
+  first_time_visitors: number;
+  special_notes: string | null;
   recorded_by: string;
-  recorded_at: string;
+  created_at: string;
 }
 
-interface Contribution {
+interface DonationRecord {
   id: string;
-  user_id: string;
+  donor_name: string | null;
+  donor_email: string | null;
+  donor_phone: string | null;
   amount: number;
-  contribution_type: string;
-  contribution_date: string;
+  donation_date: string;
+  payment_method: string;
+  check_number: string | null;
+  category: string;
+  is_anonymous: boolean;
+  is_recurring: boolean;
+  tax_deductible: boolean;
   notes: string | null;
   recorded_by: string;
   created_at: string;
-  profiles?: { first_name: string | null; last_name: string | null };
 }
 
 export default function Records() {
   const [memberRegistrations, setMemberRegistrations] = useState<MemberRegistration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
-  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [donationRecords, setDonationRecords] = useState<DonationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -85,16 +108,16 @@ export default function Records() {
       const { data: eventsData } = await supabase.from('events').select('*').order('event_date', { ascending: false });
       setEvents(eventsData || []);
 
-      // Attendance
+      // Attendance Records
       const { data: attendanceData } = await supabase
-        .from('attendance')
+        .from('attendance_records')
         .select('*')
-        .order('recorded_at', { ascending: false });
-      setAttendance(attendanceData || []);
+        .order('service_date', { ascending: false });
+      setAttendanceRecords(attendanceData || []);
 
-      // Contributions
-      const { data: contributionsData } = await supabase.from('contributions').select('*').order('contribution_date', { ascending: false });
-      setContributions(contributionsData || []);
+      // Donation Records
+      const { data: donationData } = await supabase.from('donation_records').select('*').order('donation_date', { ascending: false });
+      setDonationRecords(donationData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -107,7 +130,7 @@ export default function Records() {
     }
   };
 
-  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance' | 'contributions', id: string) => {
+  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records', id: string) => {
     try {
       const { error } = await supabase
         .from(table)
@@ -161,11 +184,11 @@ export default function Records() {
             </TabsTrigger>
             <TabsTrigger value="attendance" className="flex items-center gap-2">
               <UserCheck className="h-4 w-4" />
-              Attendance ({attendance.length})
+              Attendance ({attendanceRecords.length})
             </TabsTrigger>
             <TabsTrigger value="contributions" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              Contributions ({contributions.length})
+              Donations ({donationRecords.length})
             </TabsTrigger>
           </TabsList>
 
@@ -240,45 +263,67 @@ export default function Records() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {events.map((event) => (
-                      <TableRow key={event.id}>
-                        <TableCell className="font-medium">{event.title}</TableCell>
-                        <TableCell>
-                          {format(new Date(event.event_date), 'MMM dd, yyyy HH:mm')}
-                        </TableCell>
-                        <TableCell>{event.location || 'N/A'}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {event.description || 'No description'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDelete('events', event.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                 <Table>
+                   <TableHeader>
+                     <TableRow>
+                       <TableHead>Title</TableHead>
+                       <TableHead>Date & Time</TableHead>
+                       <TableHead>Category</TableHead>
+                       <TableHead>Location</TableHead>
+                       <TableHead>Contact</TableHead>
+                       <TableHead>Cost</TableHead>
+                       <TableHead>Actions</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {events.map((event) => (
+                       <TableRow key={event.id}>
+                         <TableCell className="font-medium">{event.title}</TableCell>
+                         <TableCell>
+                           <div className="space-y-1">
+                             <div>{format(new Date(event.event_date), 'MMM dd, yyyy')}</div>
+                             {event.start_time && event.end_time && (
+                               <div className="text-sm text-muted-foreground">
+                                 {event.start_time} - {event.end_time}
+                               </div>
+                             )}
+                           </div>
+                         </TableCell>
+                         <TableCell>
+                           <Badge variant="outline">
+                             {event.category}
+                           </Badge>
+                         </TableCell>
+                         <TableCell>{event.location || 'N/A'}</TableCell>
+                         <TableCell>
+                           <div className="space-y-1">
+                             <div className="text-sm">{event.contact_person || 'N/A'}</div>
+                             {event.contact_email && (
+                               <div className="text-xs text-muted-foreground">{event.contact_email}</div>
+                             )}
+                           </div>
+                         </TableCell>
+                         <TableCell>
+                           {event.cost ? `$${Number(event.cost).toFixed(2)}` : 'Free'}
+                         </TableCell>
+                         <TableCell>
+                           <div className="flex gap-2">
+                             <Button variant="outline" size="sm">
+                               <Edit className="h-4 w-4" />
+                             </Button>
+                             <Button 
+                               variant="outline" 
+                               size="sm"
+                               onClick={() => handleDelete('events', event.id)}
+                             >
+                               <Trash2 className="h-4 w-4" />
+                             </Button>
+                           </div>
+                         </TableCell>
+                       </TableRow>
+                     ))}
+                   </TableBody>
+                 </Table>
               </CardContent>
             </Card>
           </TabsContent>
@@ -308,74 +353,94 @@ export default function Records() {
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {attendance.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell>{format(new Date(record.recorded_at), 'MMM dd, yyyy')}</TableCell>
-                        <TableCell>{record.attended ? "Attended" : "Absent"}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDelete('attendance', record.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                   <TableBody>
+                     {attendanceRecords.map((record) => (
+                       <TableRow key={record.id}>
+                         <TableCell>
+                           {format(new Date(record.service_date), 'MMM dd, yyyy')}
+                         </TableCell>
+                         <TableCell>
+                           <Badge variant="outline">
+                             {record.service_type.replace('_', ' ')}
+                           </Badge>
+                         </TableCell>
+                         <TableCell className="font-medium">{record.total_attendance}</TableCell>
+                         <TableCell>{record.adult_count}</TableCell>
+                         <TableCell>{record.child_count}</TableCell>
+                         <TableCell>{record.visitor_count}</TableCell>
+                         <TableCell>{record.first_time_visitors}</TableCell>
+                         <TableCell className="max-w-xs truncate">
+                           {record.special_notes || 'No notes'}
+                         </TableCell>
+                         <TableCell>
+                           <div className="flex gap-2">
+                             <Button variant="outline" size="sm">
+                               <Edit className="h-4 w-4" />
+                             </Button>
+                             <Button 
+                               variant="outline" 
+                               size="sm"
+                               onClick={() => handleDelete('attendance_records', record.id)}
+                             >
+                               <Trash2 className="h-4 w-4" />
+                             </Button>
+                           </div>
+                         </TableCell>
+                       </TableRow>
+                     ))}
+                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Contributions Tab */}
+          {/* Donations Tab */}
           <TabsContent value="contributions">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Contribution Records</CardTitle>
+                <CardTitle>Donation Records</CardTitle>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Contribution
+                  Add Donation
                 </Button>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Member</TableHead>
+                      <TableHead>Donor</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Type</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Payment Method</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {contributions.map((contribution) => (
-                      <TableRow key={contribution.id}>
+                    {donationRecords.map((donation) => (
+                      <TableRow key={donation.id}>
                         <TableCell>
-                          {contribution.profiles?.first_name} {contribution.profiles?.last_name}
+                          {donation.is_anonymous ? 'Anonymous' : donation.donor_name || 'N/A'}
                         </TableCell>
                         <TableCell className="font-medium">
-                          ${Number(contribution.amount).toFixed(2)}
+                          ${Number(donation.amount).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
-                            {contribution.contribution_type}
+                            {donation.category}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(contribution.contribution_date), 'MMM dd, yyyy')}
+                          <Badge variant="secondary">
+                            {donation.payment_method.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(donation.donation_date), 'MMM dd, yyyy')}
                         </TableCell>
                         <TableCell className="max-w-xs truncate">
-                          {contribution.notes || 'No notes'}
+                          {donation.notes || 'No notes'}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -385,7 +450,7 @@ export default function Records() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => handleDelete('contributions', contribution.id)}
+                              onClick={() => handleDelete('donation_records', donation.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

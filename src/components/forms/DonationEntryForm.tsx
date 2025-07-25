@@ -15,6 +15,7 @@ import { CalendarIcon, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const donationSchema = z.object({
   donorName: z.string().min(2, "Donor name must be at least 2 characters"),
@@ -55,8 +56,37 @@ export function DonationEntryForm() {
 
   const onSubmit = async (data: DonationFormData) => {
     try {
-      // TODO: Implement API call to save donation data
-      console.log("Donation data:", data);
+      const user = (await supabase.auth.getUser()).data.user;
+      const recordedBy = user ? user.id : null;
+
+      if (!recordedBy) {
+        throw new Error("User not authenticated");
+      }
+
+      const donationPayload = {
+        donor_name: data.isAnonymous ? null : data.donorName,
+        donor_email: data.isAnonymous ? null : (data.donorEmail || null),
+        donor_phone: data.isAnonymous ? null : (data.donorPhone || null),
+        amount: data.amount,
+        donation_date: data.donationDate.toISOString().split('T')[0],
+        payment_method: data.paymentMethod,
+        check_number: data.checkNumber || null,
+        category: data.category,
+        is_anonymous: data.isAnonymous,
+        is_recurring: data.isRecurring,
+        tax_deductible: data.taxDeductible,
+        notes: data.notes || null,
+        recorded_by: recordedBy,
+      };
+
+      const { error } = await supabase
+        .from("donation_records")
+        .insert([donationPayload]);
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Donation recorded successfully",
         description: `$${data.amount.toFixed(2)} donation from ${data.isAnonymous ? "Anonymous" : data.donorName} has been recorded.`,

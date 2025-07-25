@@ -14,6 +14,7 @@ import { CalendarIcon, Users } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const attendanceSchema = z.object({
   serviceDate: z.date({
@@ -65,8 +66,33 @@ export function AttendanceEntryForm() {
 
   const onSubmit = async (data: AttendanceFormData) => {
     try {
-      // TODO: Implement API call to save attendance data
-      console.log("Attendance data:", data);
+      const user = (await supabase.auth.getUser()).data.user;
+      const recordedBy = user ? user.id : null;
+
+      if (!recordedBy) {
+        throw new Error("User not authenticated");
+      }
+
+      const attendancePayload = {
+        service_date: data.serviceDate.toISOString().split('T')[0],
+        service_type: data.serviceType,
+        total_attendance: data.totalAttendance,
+        adult_count: data.adultCount,
+        child_count: data.childCount,
+        visitor_count: data.visitorCount,
+        first_time_visitors: data.firstTimeVisitors,
+        special_notes: data.specialNotes || null,
+        recorded_by: recordedBy,
+      };
+
+      const { error } = await supabase
+        .from("attendance_records")
+        .insert([attendancePayload]);
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Attendance recorded successfully",
         description: `${data.totalAttendance} attendees recorded for ${format(data.serviceDate, "PPP")}.`,
