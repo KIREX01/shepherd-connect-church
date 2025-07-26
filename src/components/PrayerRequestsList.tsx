@@ -61,7 +61,14 @@ export function PrayerRequestsList() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setPrayerRequests(data || []);
+      setPrayerRequests(
+        (data || []).map((req: any) => ({
+          ...req,
+          prayers_count: Array.isArray(req.prayers_count) && req.prayers_count.length > 0
+            ? req.prayers_count[0].count
+            : 0,
+        }))
+      );
     } catch (error) {
       console.error('Error fetching prayer requests:', error);
       toast({
