@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,29 +63,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      // Don't expose internal error details to prevent information leakage
+      if (error) {
+        const sanitizedError = {
+          message: error.message.includes('Invalid login credentials') 
+            ? 'Invalid email or password' 
+            : 'Authentication failed'
+        };
+        return { error: sanitizedError };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      return { error: { message: 'Authentication failed' } };
+    }
   };
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, role?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          role: role || 'member'
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      // Security fix: Force all new users to be 'member' regardless of what's passed
+      // Only admins can assign elevated roles through the user management interface
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            role: 'member' // Always assign member role on signup
+          }
         }
+      });
+      
+      if (error) {
+        // Don't expose internal error details
+        const sanitizedError = {
+          message: error.message.includes('already registered')
+            ? 'An account with this email already exists'
+            : 'Account creation failed'
+        };
+        return { error: sanitizedError };
       }
-    });
-    return { error };
+      
+      return { error: null };
+    } catch (error) {
+      return { error: { message: 'Account creation failed' } };
+    }
   };
 
   const signOut = async () => {
