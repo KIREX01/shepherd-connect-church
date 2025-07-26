@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EventRegistration } from '@/components/EventRegistration';
 import { AnnouncementsList } from '@/components/AnnouncementsList';
 import { TithesSummary } from '@/components/TithesSummary';
+import { MemberAttendanceSummary } from '@/components/MemberAttendanceSummary';
 import { Calendar, Megaphone, Users, Heart, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -59,8 +60,9 @@ export default function Dashboard() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <TithesSummary />
+          <MemberAttendanceSummary />
           <div className="space-y-6">
             <Tabs defaultValue={defaultTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">

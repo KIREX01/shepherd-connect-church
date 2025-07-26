@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import ChurchFinances from './pages/ChurchFinances';
 import Tithes from './pages/Tithes';
+import MemberAttendance from './pages/MemberAttendance';
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Tithes />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/member-attendance" 
+                element={
+                  <ProtectedRoute>
+                    <MemberAttendance />
                   </ProtectedRoute>
                 } 
               />

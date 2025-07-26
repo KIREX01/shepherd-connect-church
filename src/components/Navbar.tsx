@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart, ChevronDown } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart, ChevronDown, UserCheck } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
@@ -70,6 +70,17 @@ export function Navbar() {
                 >
                   <FileText className="h-4 w-4" />
                   <span>Forms</span>
+                </Button>
+              </Link>
+
+              <Link to="/member-attendance">
+                <Button 
+                  variant={isActive('/member-attendance') ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <UserCheck className="h-4 w-4" />
+                  <span>Attendance</span>
                 </Button>
               </Link>
 
