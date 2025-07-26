@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,12 +33,9 @@ export function AnnouncementsList() {
 
   const fetchAnnouncements = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('announcements')
-        .select(`
-          *,
-          author:profiles!announcements_created_by_fkey(first_name, last_name)
-        `)
+        .select('*')
         .or('expires_at.is.null,expires_at.gte.now()')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });

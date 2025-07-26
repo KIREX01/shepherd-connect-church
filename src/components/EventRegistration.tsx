@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,13 +41,8 @@ export function EventRegistration() {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select(`
-          *,
-          registrations_count:event_registrations(count),
-          user_registered:event_registrations!inner(user_id)
-        `)
+        .select(`*`)
         .gte('event_date', new Date().toISOString())
-        .eq('registration_required', true)
         .order('event_date', { ascending: true });
 
       if (error) throw error;

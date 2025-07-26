@@ -109,7 +109,10 @@ export default function Records() {
       setMemberRegistrations(memberData || []);
 
       // Events
-      const { data: eventsData } = await supabase.from('events').select('*').order('event_date', { ascending: false });
+      const { data: eventsData } = await supabase
+        .from('events')
+        .select('*')
+        .order('event_date', { ascending: false });
       setEvents(eventsData || []);
 
       // Attendance Records

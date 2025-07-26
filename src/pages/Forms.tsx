@@ -16,6 +16,11 @@ import {
   Heart,
   ArrowLeft 
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 const Forms = () => {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
@@ -147,9 +152,76 @@ const Forms = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Only show to admins */}
+        <AdminAnnouncementForm />
       </div>
     </div>
   );
 };
+
+export function AdminAnnouncementForm({ onAnnouncementCreated }: { onAnnouncementCreated?: () => void }) {
+  const { user, userRole } = useAuth();
+  const { toast } = useToast();
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (userRole !== "admin") return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { error } = await supabase.from("announcements").insert([
+        {
+          title,
+          content,
+          priority: "medium",
+          category: "general",
+          is_pinned: false,
+          created_by: user?.id,
+        },
+      ]);
+      if (error) throw error;
+      toast({ title: "Announcement posted", description: "Your announcement is live." });
+      setTitle("");
+      setContent("");
+      if (onAnnouncementCreated) onAnnouncementCreated();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to post announcement", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Post New Announcement</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            placeholder="Announcement Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            required
+          />
+          <Textarea
+            placeholder="Announcement Content"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            required
+            rows={4}
+          />
+          <Button type="submit" disabled={loading}>
+            {loading ? "Posting..." : "Post Announcement"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default Forms;
