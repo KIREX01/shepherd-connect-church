@@ -11,13 +11,15 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Users, AlertTriangle } from 'lucide-react';
 
+type UserRole = 'admin' | 'pastor' | 'member';
+
 interface UserProfile {
   id: string;
   first_name: string;
   last_name: string;
   user_id: string;
   created_at: string;
-  role?: string;
+  role?: UserRole;
 }
 
 export function UserManagement() {
@@ -44,7 +46,7 @@ export function UserManagement() {
       // Combine profiles with roles
       const usersWithRoles = profiles.map(profile => ({
         ...profile,
-        role: userRoles.find(ur => ur.user_id === profile.user_id)?.role || 'member'
+        role: (userRoles.find(ur => ur.user_id === profile.user_id)?.role || 'member') as UserRole
       }));
 
       return usersWithRoles;
@@ -53,7 +55,7 @@ export function UserManagement() {
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
       // First, check if user already has a role entry
       const { data: existingRole } = await supabase
         .from('user_roles')
@@ -96,17 +98,17 @@ export function UserManagement() {
   });
 
   const handleRoleChange = (userId: string, newRole: string) => {
-    updateRoleMutation.mutate({ userId, newRole });
+    updateRoleMutation.mutate({ userId, newRole: newRole as UserRole });
   };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
       case 'admin':
-        return 'destructive';
+        return 'destructive' as const;
       case 'pastor':
-        return 'secondary';
+        return 'secondary' as const;
       default:
-        return 'outline';
+        return 'outline' as const;
     }
   };
 
