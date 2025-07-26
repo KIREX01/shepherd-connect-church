@@ -18,6 +18,8 @@ import { ThemeProvider } from '@/components/ui/theme-provider';
 import ChurchFinances from './pages/ChurchFinances';
 import Tithes from './pages/Tithes';
 import MemberAttendance from './pages/MemberAttendance';
+import { Footer } from "@/components/Footer";
+import { QuickActions } from "@/components/QuickActions";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +102,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <MemberAttendance />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/quick-actions" 
+                element={
+                  <ProtectedRoute>
+                    <QuickActions />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/footer" 
+                element={
+                  <ProtectedRoute>
+                    <Footer />
                   </ProtectedRoute>
                 } 
               />
