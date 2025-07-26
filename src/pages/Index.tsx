@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { Church, Users, Calendar, DollarSign, BarChart3, Heart, Megaphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -257,6 +258,7 @@ export default function Index() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

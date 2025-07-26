@@ -1,6 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EventRegistration } from '@/components/EventRegistration';
 import { AnnouncementsList } from '@/components/AnnouncementsList';
@@ -60,9 +61,7 @@ export default function Dashboard() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <TithesSummary />
-          <MemberAttendanceSummary />
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
           <div className="space-y-6">
             <Tabs defaultValue={defaultTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
@@ -84,9 +83,12 @@ export default function Dashboard() {
                 <EventRegistration />
               </TabsContent>
             </Tabs>
-          </div>
+          </div><TithesSummary />
+          <MemberAttendanceSummary />
+          
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

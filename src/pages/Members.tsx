@@ -1,6 +1,7 @@
 
 import { UserManagement } from '@/components/UserManagement';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 
 export default function Members() {
   return (
@@ -18,6 +19,7 @@ export default function Members() {
           <UserManagement />
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

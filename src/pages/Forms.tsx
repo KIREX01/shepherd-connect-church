@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { MemberRegistrationForm } from "@/components/forms/MemberRegistrationForm";
 import { AttendanceEntryForm } from "@/components/forms/AttendanceEntryForm";
 import { DonationEntryForm } from "@/components/forms/DonationEntryForm";
@@ -81,6 +82,7 @@ const Forms = () => {
             </Button>
             <FormComponent />
           </div>
+          <Footer />
         </div>
       );
     }
@@ -156,6 +158,7 @@ const Forms = () => {
         {/* Only show to admins */}
         <AdminAnnouncementForm />
       </div>
+      <Footer />
     </div>
   );
 };

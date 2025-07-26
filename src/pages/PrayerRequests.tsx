@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PrayerRequestForm } from '@/components/forms/PrayerRequestForm';
 import { PrayerRequestsList } from '@/components/PrayerRequestsList';
@@ -43,6 +44,7 @@ export default function PrayerRequests() {
           </TabsContent>
         </Tabs>
       </main>
+      <Footer />
     </div>
   );
 }
