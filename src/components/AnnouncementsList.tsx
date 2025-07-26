@@ -34,7 +34,7 @@ export function AnnouncementsList() {
 
   const fetchAnnouncements = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('announcements')
         .select(`
           *,
@@ -46,7 +46,7 @@ export function AnnouncementsList() {
 
       if (error) throw error;
 
-      const processedAnnouncements = data?.map(announcement => ({
+      const processedAnnouncements = data?.map((announcement: any) => ({
         ...announcement,
         author_name: announcement.author 
           ? `${announcement.author.first_name} ${announcement.author.last_name}`

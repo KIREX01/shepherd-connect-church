@@ -54,7 +54,7 @@ export function EventRegistration() {
       if (error) throw error;
 
       // Process the data to check if user is registered
-      const processedEvents = data?.map(event => ({
+      const processedEvents = data?.map((event: any) => ({
         ...event,
         registrations_count: event.registrations_count?.[0]?.count || 0,
         user_registered: event.user_registered?.some((reg: any) => reg.user_id === user?.id) || false
@@ -84,7 +84,7 @@ export function EventRegistration() {
     }
 
     try {
-      const { error } = await supabase.from('event_registrations').insert([
+      const { error } = await (supabase as any).from('event_registrations').insert([
         {
           event_id: eventId,
           user_id: user.id,
@@ -114,7 +114,7 @@ export function EventRegistration() {
 
   const handleUnregister = async (eventId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('event_registrations')
         .delete()
         .eq('event_id', eventId)

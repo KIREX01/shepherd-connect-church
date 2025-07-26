@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_pinned: boolean
+          priority: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_pinned?: boolean
+          priority?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_pinned?: boolean
+          priority?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           attended: boolean
@@ -184,6 +223,44 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          notes: string | null
+          registration_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          notes?: string | null
+          registration_date?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          registration_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_event_registrations_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           category: string
@@ -313,6 +390,92 @@ export type Database = {
         }
         Relationships: []
       }
+      prayer_requests: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_anonymous: boolean
+          is_private: boolean
+          is_urgent: boolean
+          requester_email: string | null
+          requester_name: string | null
+          requester_phone: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          is_anonymous?: boolean
+          is_private?: boolean
+          is_urgent?: boolean
+          requester_email?: string | null
+          requester_name?: string | null
+          requester_phone?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_anonymous?: boolean
+          is_private?: boolean
+          is_urgent?: boolean
+          requester_email?: string | null
+          requester_name?: string | null
+          requester_phone?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      prayer_responses: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          prayer_request_id: string
+          response_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          prayer_request_id: string
+          response_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          prayer_request_id?: string
+          response_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_prayer_responses_prayer_request"
+            columns: ["prayer_request_id"]
+            isOneToOne: false
+            referencedRelation: "prayer_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -376,90 +539,6 @@ export type Database = {
         }
         Relationships: []
       }
-      volunteer_registrations: {
-        Row: {
-          id: string;
-          first_name: string;
-          last_name: string;
-          email: string;
-          phone: string;
-          availability: string[];
-          ministry_areas: string[];
-          skills: string | null;
-          experience: string | null;
-          emergency_contact_name: string;
-          emergency_contact_phone: string;
-          background_check_consent: boolean;
-          additional_notes: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          first_name: string;
-          last_name: string;
-          email: string;
-          phone: string;
-          availability: string[];
-          ministry_areas: string[];
-          skills?: string | null;
-          experience?: string | null;
-          emergency_contact_name: string;
-          emergency_contact_phone: string;
-          background_check_consent: boolean;
-          additional_notes?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          first_name?: string;
-          last_name?: string;
-          email?: string;
-          phone?: string;
-          availability?: string[];
-          ministry_areas?: string[];
-          skills?: string | null;
-          experience?: string | null;
-          emergency_contact_name?: string;
-          emergency_contact_phone?: string;
-          background_check_consent?: boolean;
-          additional_notes?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      church_finances: {
-        Row: {
-          id: string;
-          type: 'income' | 'expense';
-          amount: number;
-          date: string;
-          description: string | null;
-          category: string | null;
-          recorded_by: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          type: 'income' | 'expense';
-          amount: number;
-          date: string;
-          description?: string | null;
-          category?: string | null;
-          recorded_by?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          type?: 'income' | 'expense';
-          amount?: number;
-          date?: string;
-          description?: string | null;
-          category?: string | null;
-          recorded_by?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
     }
     Views: {
       [_ in never]: never

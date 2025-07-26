@@ -12,7 +12,7 @@ import { Navbar } from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import type { Tables } from '@/integrations/supabase/types';
 
-type VolunteerRecord = Tables<'volunteer_registrations'>;
+type VolunteerRecord = any;
 
 interface MemberRegistration {
   id: string;
@@ -124,7 +124,7 @@ export default function Records() {
       setDonationRecords(donationData || []);
 
       // Volunteer Records
-      const { data: volunteerData } = await supabase.from('volunteer_registrations').select('*').order('created_at', { ascending: false });
+      const { data: volunteerData } = await (supabase as any).from('volunteer_registrations').select('*').order('created_at', { ascending: false });
       setVolunteerRecords((volunteerData as VolunteerRecord[]) || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -141,7 +141,7 @@ export default function Records() {
   const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations', id: string) => {
     if (table === 'volunteer_registrations' || table === 'member_registrations' || table === 'events' || table === 'attendance_records' || table === 'donation_records') {
       try {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from(table)
           .delete()
           .eq('id', id);

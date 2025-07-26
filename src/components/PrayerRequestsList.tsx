@@ -37,7 +37,7 @@ export function PrayerRequestsList() {
 
   const fetchPrayerRequests = async () => {
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('prayer_requests')
         .select(`
           *,
@@ -69,7 +69,7 @@ export function PrayerRequestsList() {
 
   const handlePrayForRequest = async (requestId: string) => {
     try {
-      const { error } = await supabase.from('prayer_responses').insert([
+      const { error } = await (supabase as any).from('prayer_responses').insert([
         {
           prayer_request_id: requestId,
           user_id: user?.id,

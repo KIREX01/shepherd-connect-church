@@ -17,7 +17,7 @@ interface FinanceForm {
   category: string;
 }
 
-type ChurchFinance = Tables<'church_finances'>;
+type ChurchFinance = any;
 
 export default function ChurchFinances() {
   const { userRole, user } = useAuth();
@@ -40,7 +40,7 @@ export default function ChurchFinances() {
 
   const fetchFinances = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('church_finances')
       .select('*')
       .order('date', { ascending: false });
@@ -55,7 +55,7 @@ export default function ChurchFinances() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.from('church_finances').insert([
+    const { error } = await (supabase as any).from('church_finances').insert([
       {
         type: form.type,
         amount: Number(form.amount),

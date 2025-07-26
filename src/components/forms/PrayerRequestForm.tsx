@@ -53,7 +53,7 @@ export function PrayerRequestForm() {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.from('prayer_requests').insert([
+      const { error } = await (supabase as any).from('prayer_requests').insert([
         {
           ...data,
           user_id: user?.id,
