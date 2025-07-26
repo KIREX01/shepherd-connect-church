@@ -1,11 +1,12 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart, ChevronDown } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export function Navbar() {
   const { user, signOut, userRole } = useAuth();
@@ -72,6 +73,47 @@ export function Navbar() {
                 </Button>
               </Link>
 
+              {userRole === 'admin' ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant={isActive('/tithes') || isActive('/finances') ? 'default' : 'ghost'} 
+                      size="sm"
+                      className="flex items-center space-x-2"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span>Finance</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/tithes" className="flex items-center space-x-2">
+                        <DollarSign className="h-4 w-4" />
+                        <span>Tithes</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/finances" className="flex items-center space-x-2">
+                        <Database className="h-4 w-4" />
+                        <span>Church Finances</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link to="/tithes">
+                  <Button 
+                    variant={isActive('/tithes') ? 'default' : 'ghost'} 
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    <span>Tithes</span>
+                  </Button>
+                </Link>
+              )}
+
               {(userRole === 'admin' || userRole === 'pastor') && (
                 <>
                   <Link to="/members">
@@ -86,28 +128,16 @@ export function Navbar() {
                   </Link>
 
                   {userRole === 'admin' && (
-                    <>
-                      <Link to="/records">
-                        <Button 
-                          variant={isActive('/records') ? 'default' : 'ghost'} 
-                          size="sm"
-                          className="flex items-center space-x-2"
-                        >
-                          <Database className="h-4 w-4" />
-                          <span>Records</span>
-                        </Button>
-                      </Link>
-                      <Link to="/finances">
-                        <Button 
-                          variant={isActive('/finances') ? 'default' : 'ghost'} 
-                          size="sm"
-                          className="flex items-center space-x-2"
-                        >
-                          <DollarSign className="h-4 w-4" />
-                          <span>Finances</span>
-                        </Button>
-                      </Link>
-                    </>
+                    <Link to="/records">
+                      <Button 
+                        variant={isActive('/records') ? 'default' : 'ghost'} 
+                        size="sm"
+                        className="flex items-center space-x-2"
+                      >
+                        <Database className="h-4 w-4" />
+                        <span>Records</span>
+                      </Button>
+                    </Link>
                   )}
                 </>
               )}

@@ -4,7 +4,8 @@ import { Navbar } from '@/components/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EventRegistration } from '@/components/EventRegistration';
 import { AnnouncementsList } from '@/components/AnnouncementsList';
-import { Calendar, Megaphone, Users, Heart } from 'lucide-react';
+import { TithesSummary } from '@/components/TithesSummary';
+import { Calendar, Megaphone, Users, Heart, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -33,6 +34,12 @@ export default function Dashboard() {
               <p className="text-muted-foreground">Stay connected with your church community</p>
             </div>
             <div className="flex items-center gap-2">
+              <Link to="/tithes">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Tithes
+                </Button>
+              </Link>
               <Link to="/prayer-requests">
                 <Button variant="outline" className="flex items-center gap-2">
                   <Heart className="h-4 w-4" />
@@ -51,26 +58,32 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="announcements" className="flex items-center gap-2">
-              <Megaphone className="h-4 w-4" />
-              Announcements
-            </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Events
-            </TabsTrigger>
-          </TabsList>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <TithesSummary />
+          <div className="space-y-6">
+            <Tabs defaultValue={defaultTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="announcements" className="flex items-center gap-2">
+                  <Megaphone className="h-4 w-4" />
+                  Announcements
+                </TabsTrigger>
+                <TabsTrigger value="events" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Events
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="announcements">
-            <AnnouncementsList />
-          </TabsContent>
+              <TabsContent value="announcements">
+                <AnnouncementsList />
+              </TabsContent>
 
-          <TabsContent value="events">
-            <EventRegistration />
-          </TabsContent>
-        </Tabs>
+              <TabsContent value="events">
+                <EventRegistration />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </main>
     </div>
   );

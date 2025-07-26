@@ -92,12 +92,28 @@ export default function ChurchFinances() {
   const totalExpense = finances.filter(f => f.type === 'expense').reduce((sum, f) => sum + Number(f.amount), 0);
   const balance = totalIncome - totalExpense;
 
+  // Fetch tithes data for additional context
+  const [tithesTotal, setTithesTotal] = useState(0);
+  
+  useEffect(() => {
+    const fetchTithesTotal = async () => {
+      const { data, error } = await (supabase as any)
+        .from('tithes')
+        .select('amount');
+      if (!error && data) {
+        const total = data.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+        setTithesTotal(total);
+      }
+    };
+    fetchTithesTotal();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Church Finance Tracking</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle>Total Income</CardTitle>
@@ -112,6 +128,14 @@ export default function ChurchFinances() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">${totalExpense.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Total Tithes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">${tithesTotal.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
