@@ -74,7 +74,7 @@ export default function Auth() {
           <div className="flex justify-center mb-4">
             <Church className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Church Management System</CardTitle>
+          <CardTitle className="text-2xl">BUCU Management System</CardTitle>
           <CardDescription>
             Sign in to access your church dashboard
           </CardDescription>
