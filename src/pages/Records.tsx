@@ -94,14 +94,12 @@ export default function Records() {
   const [events, setEvents] = useState<Event[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [donationRecords, setDonationRecords] = useState<DonationRecord[]>([]);
-  const [volunteerRecords, setVolunteerRecords] = useState<VolunteerRecord[]>([]);
-  const [memberAttendanceRecords, setMemberAttendanceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentRecordType, setCurrentRecordType] = useState<'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations'>('member_registrations');
+  const [currentRecordType, setCurrentRecordType] = useState<'member_registrations' | 'events' | 'attendance_records' | 'donation_records'>('member_registrations');
   const [editingRecord, setEditingRecord] = useState<any>(null);
 
   useEffect(() => {
@@ -132,14 +130,6 @@ export default function Records() {
       // Donation Records
       const { data: donationData } = await supabase.from('donation_records').select('*').order('donation_date', { ascending: false });
       setDonationRecords(donationData || []);
-
-      // Volunteer Records
-      const { data: volunteerData } = await (supabase as any).from('volunteer_registrations').select('*').order('created_at', { ascending: false });
-      setVolunteerRecords((volunteerData as VolunteerRecord[]) || []);
-
-      // Member Attendance Records
-      const { data: memberAttendanceData } = await (supabase as any).from('member_attendance').select('*').order('attendance_date', { ascending: false });
-      setMemberAttendanceRecords(memberAttendanceData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -152,40 +142,38 @@ export default function Records() {
     }
   };
 
-  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations' | 'member_attendance', id: string) => {
-    if (table === 'volunteer_registrations' || table === 'member_registrations' || table === 'events' || table === 'attendance_records' || table === 'donation_records' || table === 'member_attendance') {
-      try {
-        const { error } = await (supabase as any)
-          .from(table)
-          .delete()
-          .eq('id', id);
+  const handleDelete = async (table: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records', id: string) => {
+    try {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Success",
-          description: "Record deleted successfully",
-        });
+      toast({
+        title: "Success",
+        description: "Record deleted successfully",
+      });
 
-        fetchAllData(); // Refresh data
-      } catch (error) {
-        console.error('Error deleting record:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete record",
-          variant: "destructive",
-        });
-      }
+      fetchAllData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete record",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleAddRecord = (recordType: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations' | 'member_attendance') => {
+  const handleAddRecord = (recordType: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records') => {
     setCurrentRecordType(recordType);
     setEditingRecord(null);
     setIsModalOpen(true);
   };
 
-  const handleEditRecord = (recordType: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations' | 'member_attendance', record: any) => {
+  const handleEditRecord = (recordType: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records', record: any) => {
     setCurrentRecordType(recordType);
     setEditingRecord(record);
     setIsModalOpen(true);
@@ -218,7 +206,7 @@ export default function Records() {
         </div>
 
         <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="members" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Members ({memberRegistrations.length})
@@ -234,14 +222,6 @@ export default function Records() {
             <TabsTrigger value="contributions" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               Donations ({donationRecords.length})
-            </TabsTrigger>
-            <TabsTrigger value="volunteers" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Volunteers ({volunteerRecords.length})
-            </TabsTrigger>
-            <TabsTrigger value="attendance" className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              Member Attendance ({attendanceRecords.length})
             </TabsTrigger>
           </TabsList>
 
@@ -520,157 +500,6 @@ export default function Records() {
                               variant="outline" 
                               size="sm"
                               onClick={() => handleDelete('donation_records', donation.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Volunteers Tab */}
-          <TabsContent value="volunteers">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Volunteer Records</CardTitle>
-                <Button onClick={() => handleAddRecord('volunteer_registrations')}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Volunteer
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Availability</TableHead>
-                      <TableHead>Ministry Areas</TableHead>
-                      <TableHead>Emergency Contact</TableHead>
-                      <TableHead>Consent</TableHead>
-                      <TableHead>Submitted</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {volunteerRecords.map((vol) => (
-                      <TableRow key={vol.id}>
-                        <TableCell>{vol.first_name} {vol.last_name}</TableCell>
-                        <TableCell>{vol.email}</TableCell>
-                        <TableCell>{vol.phone}</TableCell>
-                        <TableCell>{vol.availability.join(', ')}</TableCell>
-                        <TableCell>{vol.ministry_areas.join(', ')}</TableCell>
-                        <TableCell>
-                          {vol.emergency_contact_name}<br/>{vol.emergency_contact_phone}
-                        </TableCell>
-                        <TableCell>
-                          {vol.background_check_consent ? 'Yes' : 'No'}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(vol.created_at), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEditRecord('volunteer_registrations', vol)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDelete('volunteer_registrations', vol.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                          </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Member Attendance Tab */}
-        <TabsContent value="attendance">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Member Attendance Records</CardTitle>
-              <Button onClick={() => handleAddRecord('member_attendance')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Attendance
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Activity</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {memberAttendanceRecords.map((attendance) => (
-                    <TableRow key={attendance.id}>
-                      <TableCell className="font-medium">{attendance.member_name}</TableCell>
-                      <TableCell>{format(new Date(attendance.attendance_date), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell>{attendance.activity_name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {attendance.activity_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {attendance.check_in_time && attendance.check_out_time ? (
-                          <div className="text-sm">
-                            <div>{attendance.check_in_time}</div>
-                            <div className="text-muted-foreground">to {attendance.check_out_time}</div>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">No time recorded</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {attendance.duration_minutes ? (
-                          <span>{Math.floor(attendance.duration_minutes / 60)}h {attendance.duration_minutes % 60}m</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={attendance.status === 'present' ? 'default' : attendance.status === 'absent' ? 'destructive' : 'secondary'}>
-                          {attendance.status.charAt(0).toUpperCase() + attendance.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEditRecord('member_attendance', attendance)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDelete('member_attendance', attendance.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

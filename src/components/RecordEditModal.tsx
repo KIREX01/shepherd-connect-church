@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface RecordEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  recordType: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records' | 'volunteer_registrations';
+  recordType: 'member_registrations' | 'events' | 'attendance_records' | 'donation_records';
   record?: any;
   onSuccess: () => void;
 }
@@ -93,21 +93,6 @@ export function RecordEditModal({ isOpen, onClose, recordType, record, onSuccess
           is_recurring: false,
           tax_deductible: true,
           notes: ''
-        };
-      case 'volunteer_registrations':
-        return {
-          first_name: '',
-          last_name: '',
-          email: '',
-          phone: '',
-          availability: [],
-          ministry_areas: [],
-          skills: '',
-          experience: '',
-          emergency_contact_name: '',
-          emergency_contact_phone: '',
-          background_check_consent: false,
-          additional_notes: ''
         };
       default:
         return {};
@@ -795,8 +780,6 @@ export function RecordEditModal({ isOpen, onClose, recordType, record, onSuccess
         return renderAttendanceForm();
       case 'donation_records':
         return renderDonationForm();
-      case 'volunteer_registrations':
-        return renderVolunteerForm();
       default:
         return <div>Unknown record type</div>;
     }

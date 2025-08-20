@@ -9,21 +9,21 @@ import { Button } from '@/components/ui/button';
 interface Tithe {
   id: string;
   amount: number;
-  tithe_date: string;
-  category: string;
+  contribution_date: string;
+  contribution_type: string;
 }
 
 export function TithesSummary() {
   const { user, userRole } = useAuth();
 
   const { data: tithes, isLoading } = useQuery({
-    queryKey: ['tithes-summary', user?.id],
+    queryKey: ['contributions-summary', user?.id],
     queryFn: async () => {
-      let query = supabase.from('tithes').select('*').order('tithe_date', { ascending: false });
+      let query = supabase.from('contributions').select('*').order('contribution_date', { ascending: false });
       
-      // If user is not admin/pastor, only show their own tithes
+      // If user is not admin/pastor, only show their own contributions
       if (userRole !== 'admin' && userRole !== 'pastor') {
-        query = query.eq('member_id', user?.id);
+        query = query.eq('user_id', user?.id);
       }
       
       const { data, error } = await query;
@@ -48,13 +48,13 @@ export function TithesSummary() {
   const totalTithes = tithes?.reduce((sum, tithe) => sum + tithe.amount, 0) || 0;
   
   const currentMonthTithes = tithes?.filter(tithe => {
-    const titheDate = new Date(tithe.tithe_date);
+    const titheDate = new Date(tithe.contribution_date);
     const now = new Date();
     return titheDate.getMonth() === now.getMonth() && titheDate.getFullYear() === now.getFullYear();
   }).reduce((sum, tithe) => sum + tithe.amount, 0) || 0;
 
   const lastMonthTithes = tithes?.filter(tithe => {
-    const titheDate = new Date(tithe.tithe_date);
+    const titheDate = new Date(tithe.contribution_date);
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     return titheDate.getMonth() === lastMonth.getMonth() && titheDate.getFullYear() === lastMonth.getFullYear();
@@ -132,7 +132,7 @@ export function TithesSummary() {
                 <div key={tithe.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>{new Date(tithe.tithe_date).toLocaleDateString()}</span>
+                    <span>{new Date(tithe.contribution_date).toLocaleDateString()}</span>
                   </div>
                   <span className="font-medium">${tithe.amount.toLocaleString()}</span>
                 </div>

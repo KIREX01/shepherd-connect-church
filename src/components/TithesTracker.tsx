@@ -17,27 +17,19 @@ import { DollarSign, Plus, Eye, Edit, Trash2, Calendar, User } from 'lucide-reac
 
 interface Tithe {
   id: string;
-  member_id: string;
-  member_name: string;
+  user_id: string;
   amount: number;
-  tithe_date: string;
-  payment_method: string;
-  check_number?: string;
-  category: string;
-  is_anonymous: boolean;
+  contribution_date: string;
+  contribution_type: string;
   notes?: string;
   recorded_by: string;
   created_at: string;
 }
 
 interface TitheForm {
-  member_name: string;
   amount: string;
-  tithe_date: string;
-  payment_method: string;
-  check_number: string;
-  category: string;
-  is_anonymous: boolean;
+  contribution_date: string;
+  contribution_type: string;
   notes: string;
 }
 
@@ -48,25 +40,21 @@ export function TithesTracker() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTithe, setEditingTithe] = useState<Tithe | null>(null);
   const [form, setForm] = useState<TitheForm>({
-    member_name: '',
     amount: '',
-    tithe_date: '',
-    payment_method: 'cash',
-    check_number: '',
-    category: 'tithe',
-    is_anonymous: false,
+    contribution_date: '',
+    contribution_type: 'tithe',
     notes: '',
   });
 
-  // Fetch tithes based on user role
+  // Fetch contributions based on user role
   const { data: tithes, isLoading } = useQuery({
-    queryKey: ['tithes', user?.id],
+    queryKey: ['contributions', user?.id],
     queryFn: async () => {
-      let query = supabase.from('tithes').select('*').order('tithe_date', { ascending: false });
+      let query = supabase.from('contributions').select('*').order('contribution_date', { ascending: false });
       
-      // If user is not admin/pastor, only show their own tithes
+      // If user is not admin/pastor, only show their own contributions
       if (userRole !== 'admin' && userRole !== 'pastor') {
-        query = query.eq('member_id', user?.id);
+        query = query.eq('user_id', user?.id);
       }
       
       const { data, error } = await query;
@@ -90,46 +78,46 @@ export function TithesTracker() {
   });
 
   const createTitheMutation = useMutation({
-    mutationFn: async (titheData: Partial<Tithe>) => {
-      const { error } = await supabase.from('tithes').insert([titheData]);
+    mutationFn: async (titheData: any) => {
+      const { error } = await supabase.from('contributions').insert([titheData]);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tithes'] });
-      toast({ title: 'Success', description: 'Tithe record added successfully' });
+      queryClient.invalidateQueries({ queryKey: ['contributions'] });
+      toast({ title: 'Success', description: 'Contribution record added successfully' });
       resetForm();
       setIsDialogOpen(false);
     },
     onError: (error) => {
-      console.error('Error creating tithe:', error);
+      console.error('Error creating contribution:', error);
       toast({ 
         title: 'Error', 
-        description: 'Failed to add tithe record', 
+        description: 'Failed to add contribution record', 
         variant: 'destructive' 
       });
     },
   });
 
   const updateTitheMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Tithe> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const { error } = await supabase
-        .from('tithes')
+        .from('contributions')
         .update(data)
         .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tithes'] });
-      toast({ title: 'Success', description: 'Tithe record updated successfully' });
+      queryClient.invalidateQueries({ queryKey: ['contributions'] });
+      toast({ title: 'Success', description: 'Contribution record updated successfully' });
       resetForm();
       setEditingTithe(null);
       setIsDialogOpen(false);
     },
     onError: (error) => {
-      console.error('Error updating tithe:', error);
+      console.error('Error updating contribution:', error);
       toast({ 
         title: 'Error', 
-        description: 'Failed to update tithe record', 
+        description: 'Failed to update contribution record', 
         variant: 'destructive' 
       });
     },
@@ -137,18 +125,18 @@ export function TithesTracker() {
 
   const deleteTitheMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('tithes').delete().eq('id', id);
+      const { error } = await supabase.from('contributions').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tithes'] });
-      toast({ title: 'Success', description: 'Tithe record deleted successfully' });
+      queryClient.invalidateQueries({ queryKey: ['contributions'] });
+      toast({ title: 'Success', description: 'Contribution record deleted successfully' });
     },
     onError: (error) => {
-      console.error('Error deleting tithe:', error);
+      console.error('Error deleting contribution:', error);
       toast({ 
         title: 'Error', 
-        description: 'Failed to delete tithe record', 
+        description: 'Failed to delete contribution record', 
         variant: 'destructive' 
       });
     },
@@ -156,13 +144,9 @@ export function TithesTracker() {
 
   const resetForm = () => {
     setForm({
-      member_name: userRole === 'admin' || userRole === 'pastor' ? '' : `${user?.user_metadata?.first_name || ''} ${user?.user_metadata?.last_name || ''}`.trim(),
       amount: '',
-      tithe_date: '',
-      payment_method: 'cash',
-      check_number: '',
-      category: 'tithe',
-      is_anonymous: false,
+      contribution_date: '',
+      contribution_type: 'tithe',
       notes: '',
     });
   };
@@ -171,14 +155,10 @@ export function TithesTracker() {
     e.preventDefault();
     
     const titheData = {
-      member_id: editingTithe?.member_id || user?.id,
-      member_name: form.member_name,
+      user_id: user?.id,
       amount: parseFloat(form.amount),
-      tithe_date: form.tithe_date,
-      payment_method: form.payment_method,
-      check_number: form.check_number || null,
-      category: form.category,
-      is_anonymous: form.is_anonymous,
+      contribution_date: form.contribution_date,
+      contribution_type: form.contribution_type,
       notes: form.notes || null,
       recorded_by: user?.id,
     };
@@ -193,13 +173,9 @@ export function TithesTracker() {
   const handleEdit = (tithe: Tithe) => {
     setEditingTithe(tithe);
     setForm({
-      member_name: tithe.member_name,
       amount: tithe.amount.toString(),
-      tithe_date: tithe.tithe_date,
-      payment_method: tithe.payment_method,
-      check_number: tithe.check_number || '',
-      category: tithe.category,
-      is_anonymous: tithe.is_anonymous,
+      contribution_date: tithe.contribution_date,
+      contribution_type: tithe.contribution_type,
       notes: tithe.notes || '',
     });
     setIsDialogOpen(true);
@@ -213,7 +189,7 @@ export function TithesTracker() {
 
   const totalTithes = tithes?.reduce((sum, tithe) => sum + tithe.amount, 0) || 0;
   const currentMonthTithes = tithes?.filter(tithe => {
-    const titheDate = new Date(tithe.tithe_date);
+    const titheDate = new Date(tithe.contribution_date);
     const now = new Date();
     return titheDate.getMonth() === now.getMonth() && titheDate.getFullYear() === now.getFullYear();
   }).reduce((sum, tithe) => sum + tithe.amount, 0) || 0;
@@ -289,19 +265,6 @@ export function TithesTracker() {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              {(userRole === 'admin' || userRole === 'pastor') && (
-                <div className="space-y-2">
-                  <Label htmlFor="member_name">Member Name</Label>
-                  <Input
-                    id="member_name"
-                    value={form.member_name}
-                    onChange={(e) => setForm({ ...form, member_name: e.target.value })}
-                    placeholder="Enter member name"
-                    required
-                  />
-                </div>
-              )}
-              
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount</Label>
                 <Input
@@ -317,46 +280,19 @@ export function TithesTracker() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="tithe_date">Date</Label>
+                <Label htmlFor="contribution_date">Date</Label>
                 <Input
-                  id="tithe_date"
+                  id="contribution_date"
                   type="date"
-                  value={form.tithe_date}
-                  onChange={(e) => setForm({ ...form, tithe_date: e.target.value })}
+                  value={form.contribution_date}
+                  onChange={(e) => setForm({ ...form, contribution_date: e.target.value })}
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="payment_method">Payment Method</Label>
-                <Select value={form.payment_method} onValueChange={(value) => setForm({ ...form, payment_method: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="check">Check</SelectItem>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="card">Card</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {form.payment_method === 'check' && (
-                <div className="space-y-2">
-                  <Label htmlFor="check_number">Check Number</Label>
-                  <Input
-                    id="check_number"
-                    value={form.check_number}
-                    onChange={(e) => setForm({ ...form, check_number: e.target.value })}
-                    placeholder="Enter check number"
-                  />
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={form.category} onValueChange={(value) => setForm({ ...form, category: value })}>
+                <Label htmlFor="contribution_type">Type</Label>
+                <Select value={form.contribution_type} onValueChange={(value) => setForm({ ...form, contribution_type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -379,15 +315,6 @@ export function TithesTracker() {
                   placeholder="Optional notes"
                   rows={3}
                 />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="is_anonymous"
-                  checked={form.is_anonymous}
-                  onCheckedChange={(checked) => setForm({ ...form, is_anonymous: checked as boolean })}
-                />
-                <Label htmlFor="is_anonymous">Anonymous donation</Label>
               </div>
               
               <div className="flex justify-end space-x-2">
@@ -415,10 +342,8 @@ export function TithesTracker() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Member</TableHead>
                   <TableHead>Amount</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Payment Method</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Notes</TableHead>
                   {(userRole === 'admin' || userRole === 'pastor') && (
                     <TableHead>Actions</TableHead>
@@ -428,19 +353,11 @@ export function TithesTracker() {
               <TableBody>
                 {tithes?.map((tithe) => (
                   <TableRow key={tithe.id}>
-                    <TableCell>{new Date(tithe.tithe_date).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      {tithe.is_anonymous ? (
-                        <Badge variant="secondary">Anonymous</Badge>
-                      ) : (
-                        tithe.member_name
-                      )}
-                    </TableCell>
+                    <TableCell>{new Date(tithe.contribution_date).toLocaleDateString()}</TableCell>
                     <TableCell className="font-medium">${tithe.amount.toLocaleString()}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{tithe.category}</Badge>
+                      <Badge variant="outline">{tithe.contribution_type}</Badge>
                     </TableCell>
-                    <TableCell className="capitalize">{tithe.payment_method}</TableCell>
                     <TableCell>{tithe.notes || '-'}</TableCell>
                     {(userRole === 'admin' || userRole === 'pastor') && (
                       <TableCell>
@@ -466,8 +383,8 @@ export function TithesTracker() {
                 ))}
                 {tithes?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={userRole === 'admin' || userRole === 'pastor' ? 7 : 6} className="text-center py-8">
-                      No tithe records found
+                    <TableCell colSpan={userRole === 'admin' || userRole === 'pastor' ? 5 : 4} className="text-center py-8">
+                      No contribution records found
                     </TableCell>
                   </TableRow>
                 )}
