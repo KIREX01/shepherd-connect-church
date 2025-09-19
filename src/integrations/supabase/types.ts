@@ -474,6 +474,13 @@ export type Database = {
             referencedRelation: "prayer_requests"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_prayer_responses_prayer_request"
+            columns: ["prayer_request_id"]
+            isOneToOne: false
+            referencedRelation: "prayer_requests_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -511,6 +518,36 @@ export type Database = {
           membership_date?: string | null
           phone?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      role_audit_log: {
+        Row: {
+          changed_at: string
+          changed_by: string
+          id: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          old_role: Database["public"]["Enums"]["app_role"] | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by: string
+          id?: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string
+          id?: string
+          new_role?: Database["public"]["Enums"]["app_role"]
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
           user_id?: string
         }
         Relationships: []
@@ -595,7 +632,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      prayer_requests_public: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_urgent: boolean | null
+          requester_email: string | null
+          requester_name: string | null
+          requester_phone: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_urgent?: boolean | null
+          requester_email?: never
+          requester_name?: never
+          requester_phone?: never
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_urgent?: boolean | null
+          requester_email?: never
+          requester_name?: never
+          requester_phone?: never
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: {
