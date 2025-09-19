@@ -27,6 +27,7 @@ interface PrayerRequest {
   pastoral_response?: string;
   responded_at?: string;
   responded_by?: string;
+  user_id?: string | null;
 }
 
 export function PrayerRequestsList() {
@@ -43,22 +44,14 @@ export function PrayerRequestsList() {
 
   const fetchPrayerRequests = async () => {
     try {
-      let query = supabase
+      // Use the secure query that respects RLS policies
+      const { data, error } = await supabase
         .from('prayer_requests')
         .select(`
           *,
           prayers_count:prayer_responses(count)
         `)
         .order('created_at', { ascending: false });
-
-      // If not admin/pastor, only show non-private active requests
-      if (userRole !== 'admin' && userRole !== 'pastor') {
-        query = query
-          .eq('is_private', false)
-          .eq('status', 'active');
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setPrayerRequests(
@@ -229,12 +222,24 @@ export function PrayerRequestsList() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    {request.is_anonymous ? 'Anonymous' : request.requester_name || 'Church Member'}
+                    {request.is_anonymous ? 'Anonymous' : 
+                     (userRole === 'admin' || userRole === 'pastor' || request.user_id === user?.id) 
+                       ? (request.requester_name || 'Church Member')
+                       : 'Church Member'
+                    }
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {format(new Date(request.created_at), 'MMM dd, yyyy')}
                   </div>
+                  {/* Show contact info only to authorized users */}
+                  {(userRole === 'admin' || userRole === 'pastor' || request.user_id === user?.id) && 
+                   (request.requester_email || request.requester_phone) && (
+                    <div className="text-xs">
+                      {request.requester_email && <div>📧 {request.requester_email}</div>}
+                      {request.requester_phone && <div>📞 {request.requester_phone}</div>}
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>

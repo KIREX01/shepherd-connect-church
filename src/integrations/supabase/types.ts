@@ -639,13 +639,9 @@ export type Database = {
           description: string | null
           id: string | null
           is_urgent: boolean | null
-          requester_email: string | null
-          requester_name: string | null
-          requester_phone: string | null
           status: string | null
           title: string | null
           updated_at: string | null
-          user_id: string | null
         }
         Insert: {
           category?: string | null
@@ -653,13 +649,9 @@ export type Database = {
           description?: string | null
           id?: string | null
           is_urgent?: boolean | null
-          requester_email?: never
-          requester_name?: never
-          requester_phone?: never
           status?: string | null
           title?: string | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Update: {
           category?: string | null
@@ -667,13 +659,9 @@ export type Database = {
           description?: string | null
           id?: string | null
           is_urgent?: boolean | null
-          requester_email?: never
-          requester_name?: never
-          requester_phone?: never
           status?: string | null
           title?: string | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
