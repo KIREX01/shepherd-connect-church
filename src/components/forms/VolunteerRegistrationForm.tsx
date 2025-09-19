@@ -84,7 +84,7 @@ export function VolunteerRegistrationForm() {
         additional_notes: data.additionalNotes || null,
         // id and created_at are auto-generated
       };
-      const { error } = await (supabase as any).from('volunteer_registrations').insert([insertData]);
+      const { error } = await supabase.from('volunteer_registrations').insert([insertData]);
       if (error) throw error;
       toast({
         title: "Volunteer registration submitted",

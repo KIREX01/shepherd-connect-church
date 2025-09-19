@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -539,6 +539,60 @@ export type Database = {
         }
         Relationships: []
       }
+      volunteer_registrations: {
+        Row: {
+          additional_notes: string | null
+          availability: string[]
+          background_check_consent: boolean
+          created_at: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          experience: string | null
+          first_name: string
+          id: string
+          last_name: string
+          ministry_areas: string[]
+          phone: string
+          skills: string | null
+          updated_at: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          availability?: string[]
+          background_check_consent?: boolean
+          created_at?: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          experience?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          ministry_areas?: string[]
+          phone: string
+          skills?: string | null
+          updated_at?: string
+        }
+        Update: {
+          additional_notes?: string | null
+          availability?: string[]
+          background_check_consent?: boolean
+          created_at?: string
+          email?: string
+          emergency_contact_name?: string
+          emergency_contact_phone?: string
+          experience?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          ministry_areas?: string[]
+          phone?: string
+          skills?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -550,8 +604,8 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
