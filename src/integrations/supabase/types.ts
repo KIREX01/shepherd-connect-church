@@ -474,13 +474,6 @@ export type Database = {
             referencedRelation: "prayer_requests"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_prayer_responses_prayer_request"
-            columns: ["prayer_request_id"]
-            isOneToOne: false
-            referencedRelation: "prayer_requests_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       profiles: {
@@ -632,39 +625,7 @@ export type Database = {
       }
     }
     Views: {
-      prayer_requests_public: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          is_urgent: boolean | null
-          status: string | null
-          title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          is_urgent?: boolean | null
-          status?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          is_urgent?: boolean | null
-          status?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_user_role: {
