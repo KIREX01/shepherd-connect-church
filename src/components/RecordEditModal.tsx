@@ -104,6 +104,19 @@ export function RecordEditModal({ isOpen, onClose, recordType, record, onSuccess
     setLoading(true);
 
     try {
+      // Get current user for recorded_by/created_by fields
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({ 
+          title: 'Error', 
+          description: 'You must be logged in to perform this action', 
+          variant: 'destructive' 
+        });
+        setLoading(false);
+        return;
+      }
+
       let dataToSubmit = { ...formData };
       
       // Convert numeric fields
@@ -138,7 +151,14 @@ export function RecordEditModal({ isOpen, onClose, recordType, record, onSuccess
         if (error) throw error;
         toast({ title: 'Success', description: 'Record updated successfully' });
       } else {
-        // Create new record
+        // Create new record - add recorded_by or created_by field
+        if (recordType === 'attendance_records' || recordType === 'donation_records' || recordType === 'member_registrations') {
+          dataToSubmit.recorded_by = user.id;
+        }
+        if (recordType === 'events') {
+          dataToSubmit.created_by = user.id;
+        }
+        
         const { error } = await supabase
           .from(recordType)
           .insert([dataToSubmit]);
