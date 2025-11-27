@@ -48,6 +48,12 @@ export function Navbar() {
       show: true
     },
     {
+      href: '/messages',
+      label: 'Messages',
+      icon: Heart,
+      show: true
+    },
+    {
       href: '/forms',
       label: 'Forms',
       icon: FileText,

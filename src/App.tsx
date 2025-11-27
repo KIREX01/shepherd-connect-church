@@ -14,11 +14,14 @@ import Records from "./pages/Records";
 import Dashboard from "./pages/Dashboard";
 import PrayerRequests from "./pages/PrayerRequests";
 import NotFound from "./pages/NotFound";
+import Messages from "./pages/Messages";
+import Tasks from "./pages/Tasks";
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import ChurchFinances from './pages/ChurchFinances';
 import Tithes from './pages/Tithes';
 import MemberAttendance from './pages/MemberAttendance';
 import { QuickActions } from "@/components/QuickActions";
+import { MobileNav } from "@/components/MobileNav";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +48,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/messages" 
+                element={
+                  <ProtectedRoute>
+                    <Messages />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/tasks" 
+                element={
+                  <ProtectedRoute>
+                    <Tasks />
                   </ProtectedRoute>
                 } 
               />
@@ -115,6 +134,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <MobileNav />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
