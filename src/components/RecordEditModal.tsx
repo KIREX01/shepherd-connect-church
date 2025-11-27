@@ -119,25 +119,25 @@ export function RecordEditModal({ isOpen, onClose, recordType, record, onSuccess
 
       let dataToSubmit = { ...formData };
       
-      // Convert numeric fields
+      // Convert numeric fields with proper validation
       if (recordType === 'attendance_records') {
-        dataToSubmit.total_attendance = parseInt(dataToSubmit.total_attendance);
-        dataToSubmit.adult_count = parseInt(dataToSubmit.adult_count);
-        dataToSubmit.child_count = parseInt(dataToSubmit.child_count);
-        dataToSubmit.visitor_count = parseInt(dataToSubmit.visitor_count);
-        dataToSubmit.first_time_visitors = parseInt(dataToSubmit.first_time_visitors);
+        dataToSubmit.total_attendance = parseInt(dataToSubmit.total_attendance) || 0;
+        dataToSubmit.adult_count = parseInt(dataToSubmit.adult_count) || 0;
+        dataToSubmit.child_count = parseInt(dataToSubmit.child_count) || 0;
+        dataToSubmit.visitor_count = parseInt(dataToSubmit.visitor_count) || 0;
+        dataToSubmit.first_time_visitors = parseInt(dataToSubmit.first_time_visitors) || 0;
       }
       
       if (recordType === 'donation_records') {
-        dataToSubmit.amount = parseFloat(dataToSubmit.amount);
+        dataToSubmit.amount = parseFloat(dataToSubmit.amount) || 0;
       }
 
       if (recordType === 'events') {
         if (dataToSubmit.max_attendees) {
-          dataToSubmit.max_attendees = parseInt(dataToSubmit.max_attendees);
+          dataToSubmit.max_attendees = parseInt(dataToSubmit.max_attendees) || null;
         }
         if (dataToSubmit.cost) {
-          dataToSubmit.cost = parseFloat(dataToSubmit.cost);
+          dataToSubmit.cost = parseFloat(dataToSubmit.cost) || null;
         }
       }
 
@@ -167,7 +167,8 @@ export function RecordEditModal({ isOpen, onClose, recordType, record, onSuccess
         toast({ title: 'Success', description: 'Record created successfully' });
       }
 
-      onSuccess();
+      // Ensure data refresh happens before closing
+      await onSuccess();
       onClose();
     } catch (error) {
       console.error('Error saving record:', error);
