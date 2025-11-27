@@ -184,8 +184,8 @@ export default function Records() {
     setEditingRecord(null);
   };
 
-  const handleModalSuccess = () => {
-    fetchAllData();
+  const handleModalSuccess = async () => {
+    await fetchAllData();
   };
 
   if (loading) {
