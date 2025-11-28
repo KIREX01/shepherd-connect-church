@@ -609,51 +609,40 @@ export type Database = {
       }
       tasks: {
         Row: {
-          assigned_to: string | null
-          category: string | null
-          completed_at: string | null
-          created_at: string
-          created_by: string
+          id: number
+          user_id: string
+          title: string
           description: string | null
           due_date: string | null
-          id: string
-          priority: string
-          status: string
-          task_type: string
-          title: string
-          updated_at: string
+          completed: boolean
+          created_at: string
         }
         Insert: {
-          assigned_to?: string | null
-          category?: string | null
-          completed_at?: string | null
-          created_at?: string
-          created_by: string
+          id?: number
+          user_id: string
+          title: string
           description?: string | null
           due_date?: string | null
-          id?: string
-          priority?: string
-          status?: string
-          task_type?: string
-          title: string
-          updated_at?: string
+          completed?: boolean
+          created_at?: string
         }
         Update: {
-          assigned_to?: string | null
-          category?: string | null
-          completed_at?: string | null
-          created_at?: string
-          created_by?: string
+          id?: number
+          user_id?: string
+          title?: string
           description?: string | null
           due_date?: string | null
-          id?: string
-          priority?: string
-          status?: string
-          task_type?: string
-          title?: string
-          updated_at?: string
+          completed?: boolean
+          created_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       user_roles: {
         Row: {

@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart, ChevronDown, UserCheck, Menu, X } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart, ChevronDown, UserCheck, Menu, X, ClipboardList } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
@@ -18,7 +18,7 @@ export function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
+      if (themeMenuRef.current && !themeMenur.current.contains(event.target as Node)) {
         setThemeMenuOpen(false);
       }
     }
@@ -51,6 +51,12 @@ export function Navbar() {
       href: '/messages',
       label: 'Messages',
       icon: Heart,
+      show: true
+    },
+    {
+      href: '/tasks',
+      label: 'Tasks',
+      icon: ClipboardList,
       show: true
     },
     {

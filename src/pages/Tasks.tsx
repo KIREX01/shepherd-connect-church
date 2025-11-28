@@ -1,374 +1,180 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Navbar } from '@/components/Navbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Plus, CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
-interface Task {
-  id: string;
+type Task = {
+  id: number;
   title: string;
-  description: string | null;
-  task_type: 'personal' | 'shared';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  due_date: string | null;
-  category: string | null;
-  created_by: string;
-  assigned_to: string | null;
-  completed_at: string | null;
-  created_at: string;
-}
+  completed: boolean;
+};
 
-export default function Tasks() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    task_type: 'personal' as 'personal' | 'shared',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
-    due_date: '',
-    category: ''
+const Tasks = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [newTask, setNewTask] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+
+  const { data: tasks = [], isLoading } = useQuery<Task[]>({
+    queryKey: ["tasks", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", user?.id);
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!user,
   });
-  const { toast } = useToast();
 
-  useEffect(() => {
-    initializeData();
-  }, []);
+  const addTaskMutation = useMutation({
+    mutationFn: async (title: string) => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .insert([{ title, user_id: user?.id }])
+        .select();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", user?.id] });
+      setNewTask("");
+    },
+  });
 
-  const initializeData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const toggleTaskMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ completed })
+        .eq("id", id)
+        .select();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", user?.id] });
+    },
+  });
 
-    setCurrentUserId(user.id);
-    await fetchTasks();
-    setLoading(false);
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const { data, error } = await supabase.from("tasks").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", user?.id] });
+    },
+  });
 
-    const channel = supabase
-      .channel('tasks-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'tasks'
-      }, () => {
-        fetchTasks();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+  const handleAddTask = () => {
+    if (newTask.trim() === "") return;
+    addTaskMutation.mutate(newTask);
   };
 
-  const fetchTasks = async () => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setTasks(data as Task[]);
-    }
-  };
-
-  const createTask = async () => {
-    if (!formData.title.trim() || !currentUserId) return;
-
-    const { error } = await supabase
-      .from('tasks')
-      .insert({
-        ...formData,
-        created_by: currentUserId
-      });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create task',
-        variant: 'destructive'
-      });
-    } else {
-      toast({
-        title: 'Success',
-        description: 'Task created successfully'
-      });
-      setIsDialogOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        task_type: 'personal',
-        priority: 'medium',
-        due_date: '',
-        category: ''
-      });
-    }
-  };
-
-  const toggleTaskStatus = async (task: Task) => {
-    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    const completed_at = newStatus === 'completed' ? new Date().toISOString() : null;
-
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: newStatus, completed_at })
-      .eq('id', task.id);
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update task',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'destructive';
-      case 'high': return 'default';
-      case 'medium': return 'secondary';
-      case 'low': return 'outline';
-      default: return 'outline';
-    }
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return <AlertCircle className="h-4 w-4" />;
-      case 'high': return <Clock className="h-4 w-4" />;
-      default: return <Circle className="h-4 w-4" />;
-    }
-  };
-
-  const personalTasks = tasks.filter(t => t.task_type === 'personal' && t.created_by === currentUserId);
-  const sharedTasks = tasks.filter(t => t.task_type === 'shared');
-
-  const TaskList = ({ taskList }: { taskList: Task[] }) => {
-    const pendingTasks = taskList.filter(t => t.status !== 'completed');
-    const completedTasks = taskList.filter(t => t.status === 'completed');
-
-    return (
-      <div className="space-y-4">
-        {pendingTasks.length === 0 && completedTasks.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No tasks yet</p>
-        )}
-        
-        {pendingTasks.map((task) => (
-          <Card key={task.id} className="transition-all hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  checked={task.status === 'completed'}
-                  onCheckedChange={() => toggleTaskStatus(task)}
-                  className="mt-1"
-                />
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-medium">{task.title}</h3>
-                    <Badge variant={getPriorityColor(task.priority)} className="gap-1">
-                      {getPriorityIcon(task.priority)}
-                      {task.priority}
-                    </Badge>
-                  </div>
-                  {task.description && (
-                    <p className="text-sm text-muted-foreground">{task.description}</p>
-                  )}
-                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {task.category && (
-                      <Badge variant="outline">{task.category}</Badge>
-                    )}
-                    {task.due_date && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Due: {format(new Date(task.due_date), 'MMM d, yyyy')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {completedTasks.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-sm font-medium text-muted-foreground mb-4">Completed</h3>
-            {completedTasks.map((task) => (
-              <Card key={task.id} className="opacity-60 mb-2">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={true}
-                      onCheckedChange={() => toggleTaskStatus(task)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium line-through">{task.title}</h3>
-                      {task.completed_at && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Completed {format(new Date(task.completed_at), 'MMM d, h:mm a')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "active") return !task.completed;
+    if (filter === "completed") return task.completed;
+    return true;
+  });
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <Navbar />
-      <div className="container mx-auto py-4 md:py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Tasks</h1>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New Task</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Task title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Task description"
-                    rows={3}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="task_type">Type</Label>
-                    <Select
-                      value={formData.task_type}
-                      onValueChange={(value: 'personal' | 'shared') => 
-                        setFormData({ ...formData, task_type: value })
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto p-4"
+    >
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center">
+            My To-Do List
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 mb-4">
+            <Input
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Add a new task..."
+              onKeyPress={(e) => e.key === "Enter" && handleAddTask()}
+            />
+            <Button onClick={handleAddTask}>Add Task</Button>
+          </div>
+          <div className="flex justify-center gap-2 mb-4">
+            <Button
+              variant={filter === "all" ? "default" : "outline"}
+              onClick={() => setFilter("all")}
+            >
+              All
+            </Button>
+            <Button
+              variant={filter === "active" ? "default" : "outline"}
+              onClick={() => setFilter("active")}
+            >
+              Active
+            </Button>
+            <Button
+              variant={filter === "completed" ? "default" : "outline"}
+              onClick={() => setFilter("completed")}
+            >
+              Completed
+            </Button>
+          </div>
+          {isLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <AnimatePresence>
+              <motion.ul className="space-y-2">
+                {filteredTasks.map((task) => (
+                  <motion.li
+                    key={task.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                    className="flex items-center gap-2 p-2 rounded-md transition-colors hover:bg-muted"
+                  >
+                    <Checkbox
+                      checked={task.completed}
+                      onCheckedChange={() =>
+                        toggleTaskMutation.mutate({
+                          id: task.id,
+                          completed: !task.completed,
+                        })
                       }
+                      className="h-5 w-5"
+                    />
+                    <span
+                      className={`flex-grow ${
+                        task.completed ? "line-through text-muted-foreground" : ""
+                      }`}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="personal">Personal</SelectItem>
-                        <SelectItem value="shared">Shared</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select
-                      value={formData.priority}
-                      onValueChange={(value: any) => 
-                        setFormData({ ...formData, priority: value })
-                      }
+                      {task.title}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteTaskMutation.mutate(task.id)}
+                      className="text-muted-foreground hover:text-destructive"
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="e.g., Prayer, Ministry, Event"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="due_date">Due Date</Label>
-                  <Input
-                    id="due_date"
-                    type="date"
-                    value={formData.due_date}
-                    onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={createTask}>Create Task</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="personal" className="gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              Personal ({personalTasks.length})
-            </TabsTrigger>
-            <TabsTrigger value="shared" className="gap-2">
-              <Circle className="h-4 w-4" />
-              Shared ({sharedTasks.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="personal">
-            <TaskList taskList={personalTasks} />
-          </TabsContent>
-
-          <TabsContent value="shared">
-            <TaskList taskList={sharedTasks} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+                      &#x2715;
+                    </Button>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </AnimatePresence>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
-}
+};
+
+export default Tasks;

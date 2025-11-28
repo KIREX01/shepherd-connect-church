@@ -164,6 +164,9 @@ export default function Auth() {
                   <strong>Note:</strong> All new accounts are created with member privileges. 
                   Contact an administrator if you need elevated permissions.
                 </div>
+                <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
+                  <strong>Contact Us For Help:</strong> bucufellowship5@gmail.com
+                </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Sign Up"}
                 </Button>
