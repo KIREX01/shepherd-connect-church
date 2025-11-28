@@ -66,12 +66,12 @@ Adding real-time one-on-one messaging, personal & shared to-do lists, and compre
 ## Phase 4: Mobile Optimization - PWA
 
 ### PWA Setup
-- [ ] Install and configure `vite-plugin-pwa`
-- [ ] Create `manifest.json` with app metadata
-- [ ] Generate PWA icons (192x192, 512x512)
-- [ ] Configure service worker for offline support
-- [ ] Add iOS-specific meta tags
-- [ ] Create `/install` page with install instructions
+- [x] Install and configure `vite-plugin-pwa`
+- [x] Create `manifest.json` with app metadata
+- [x] Generate PWA icons (192x192, 512x512)
+- [x] Configure service worker for offline support
+- [x] Add iOS-specific meta tags
+- [x] Create `/install` page with install instructions
 
 ### Testing
 - [ ] Test install on Android
@@ -84,16 +84,16 @@ Adding real-time one-on-one messaging, personal & shared to-do lists, and compre
 ## Phase 5: Mobile Navigation & UX
 
 ### Bottom Navigation (Mobile)
-- [ ] Create mobile bottom nav bar component
-- [ ] Add navigation items: Home, Messages, Tasks, More
-- [ ] Show on mobile, hide on desktop
-- [ ] Active route highlighting
-- [ ] Badge for unread messages
+- [x] Create mobile bottom nav bar component
+- [x] Add navigation items: Home, Messages, Tasks, More
+- [x] Show on mobile, hide on desktop
+- [x] Active route highlighting
+- [x] Badge for unread messages
 
 ### Desktop Navigation
-- [ ] Keep existing navbar for desktop
-- [ ] Ensure responsive behavior
-- [ ] Add messages and tasks links to navbar
+- [x] Keep existing navbar for desktop
+- [x] Ensure responsive behavior
+- [x] Add messages and tasks links to navbar
 
 ---
 

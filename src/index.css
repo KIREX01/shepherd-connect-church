@@ -103,3 +103,25 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Touch-friendly tap targets for mobile */
+  @media (max-width: 768px) {
+    .btn, button, [role="button"], input, select, textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    .form-item {
+      margin-bottom: 1rem;
+    }
+    
+    .form-item input,
+    .form-item select,
+    .form-item textarea {
+      font-size: 1.125rem; /* 18px for better readability on mobile */
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+  }
+}

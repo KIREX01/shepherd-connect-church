@@ -21,7 +21,8 @@ import ChurchFinances from './pages/ChurchFinances';
 import Tithes from './pages/Tithes';
 import MemberAttendance from './pages/MemberAttendance';
 import { QuickActions } from "@/components/QuickActions";
-import { MobileNav } from "@/components/MobileNav";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import InstallPWA from "./pages/InstallPWA";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/install" element={<InstallPWA />} />
               <Route 
                 path="/" 
                 element={
@@ -134,7 +136,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <MobileNav />
+            <MobileBottomNav />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

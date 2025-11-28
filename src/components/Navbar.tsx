@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, Heart, ChevronDown, UserCheck, Menu, X, ClipboardList } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, MessageCircle, ChevronDown, UserCheck, Menu, X, ClipboardList } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
@@ -50,7 +50,7 @@ export function Navbar() {
     {
       href: '/messages',
       label: 'Messages',
-      icon: Heart,
+      icon: MessageCircle,
       show: true
     },
     {
