@@ -99,7 +99,7 @@ const Forms = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {formOptions.map((form) => {
             const IconComponent = form.icon;
             return (
@@ -134,7 +134,7 @@ const Forms = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="member" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                   <TabsTrigger value="member">Members</TabsTrigger>
                   <TabsTrigger value="attendance">Attendance</TabsTrigger>
                   <TabsTrigger value="donation">Donations</TabsTrigger>

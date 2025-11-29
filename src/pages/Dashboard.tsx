@@ -30,7 +30,7 @@ export default function Dashboard() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
             <div>
               <h1 className="text-3xl font-bold">Church Dashboard</h1>
               <p className="text-muted-foreground">Stay connected with your church community</p>
@@ -39,20 +39,20 @@ export default function Dashboard() {
               <Link to="/tithes">
                 <Button variant="outline" className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Tithes
+                  <span className="hidden sm:inline">Tithes</span>
                 </Button>
               </Link>
               <Link to="/prayer-requests">
                 <Button variant="outline" className="flex items-center gap-2">
                   <Heart className="h-4 w-4" />
-                  Prayer Requests
+                  <span className="hidden sm:inline">Prayer Requests</span>
                 </Button>
               </Link>
               {(userRole === 'admin' || userRole === 'pastor') && (
                 <Link to="/records">
                   <Button variant="outline" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Admin Panel
+                    <span className="hidden sm:inline">Admin Panel</span>
                   </Button>
                 </Link>
               )}
@@ -61,10 +61,10 @@ export default function Dashboard() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
-          <div className="space-y-6">
-            <Tabs defaultValue={defaultTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Tabs defaultValue={defaultTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-2">
                 <TabsTrigger value="announcements" className="flex items-center gap-2">
                   <Megaphone className="h-4 w-4" />
                   Announcements
@@ -83,9 +83,11 @@ export default function Dashboard() {
                 <EventRegistration />
               </TabsContent>
             </Tabs>
-          </div><TithesSummary />
-          <MemberAttendanceSummary />
-          
+          </div>
+          <div className="space-y-6">
+            <TithesSummary />
+            <MemberAttendanceSummary />
+          </div>
         </div>
       </main>
       <Footer />

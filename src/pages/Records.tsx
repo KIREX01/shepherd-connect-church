@@ -206,7 +206,7 @@ export default function Records() {
         </div>
 
         <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="members" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Members ({memberRegistrations.length})
@@ -236,6 +236,7 @@ export default function Records() {
                 </Button>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -285,6 +286,7 @@ export default function Records() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -300,6 +302,7 @@ export default function Records() {
                 </Button>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                  <Table>
                    <TableHeader>
                      <TableRow>
@@ -365,6 +368,7 @@ export default function Records() {
                      ))}
                    </TableBody>
                  </Table>
+                 </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -380,6 +384,7 @@ export default function Records() {
                 </Button>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -435,6 +440,7 @@ export default function Records() {
                      ))}
                    </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -450,6 +456,7 @@ export default function Records() {
                 </Button>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -509,6 +516,7 @@ export default function Records() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
