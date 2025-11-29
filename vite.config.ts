@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 const manifestForPlugin = {
-  registerType: "prompt",
+  registerType: "prompt" as const,
   includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
   manifest: {
     name: "Shepherd Connect",
@@ -37,10 +37,10 @@ const manifestForPlugin = {
     ],
     theme_color: "#171717",
     background_color: "#e8ebf2",
-    display: "standalone",
+    display: "standalone" as const,
     scope: "/",
     start_url: "/",
-    orientation: "portrait",
+    orientation: "portrait" as const,
   },
 };
 

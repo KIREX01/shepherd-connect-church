@@ -357,6 +357,42 @@ export type Database = {
         }
         Relationships: []
       }
+      member_attendance: {
+        Row: {
+          check_in_time: string | null
+          check_out_time: string | null
+          created_at: string
+          event_date: string
+          event_type: string
+          id: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string
+          event_date: string
+          event_type: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       member_registrations: {
         Row: {
           address: string
@@ -609,40 +645,51 @@ export type Database = {
       }
       tasks: {
         Row: {
-          id: number
-          user_id: string
-          title: string
+          assigned_to: string | null
+          category: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
           description: string | null
           due_date: string | null
-          completed: boolean
-          created_at: string
+          id: string
+          priority: string
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
         }
         Insert: {
-          id?: number
-          user_id: string
-          title: string
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
           description?: string | null
           due_date?: string | null
-          completed?: boolean
-          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          task_type?: string
+          title: string
+          updated_at?: string
         }
         Update: {
-          id?: number
-          user_id?: string
-          title?: string
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
           description?: string | null
           due_date?: string | null
-          completed?: boolean
-          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {

@@ -189,6 +189,7 @@ export function UserManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
         
         <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
