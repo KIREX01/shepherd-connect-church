@@ -18,7 +18,7 @@ export function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (themeMenuRef.current && !themeMenur.current.contains(event.target as Node)) {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
         setThemeMenuOpen(false);
       }
     }
