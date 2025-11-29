@@ -69,9 +69,9 @@ const Forms = () => {
     if (form) {
       const FormComponent = form.component;
       return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background pb-20 md:pb-0">
           <Navbar />
-          <div className="max-w-4xl mx-auto p-4">
+          <div className="max-w-4xl mx-auto px-4 py-6 md:p-8">
             <Button
               variant="ghost"
               onClick={() => setSelectedForm(null)}
@@ -89,17 +89,17 @@ const Forms = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Church Data Entry Forms</h1>
-          <p className="text-xl text-muted-foreground">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:p-8">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Church Data Entry Forms</h1>
+          <p className="text-base md:text-xl text-muted-foreground">
             Select a form to begin entering church data
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {formOptions.map((form) => {
             const IconComponent = form.icon;
             return (
@@ -134,12 +134,12 @@ const Forms = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="member" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-                  <TabsTrigger value="member">Members</TabsTrigger>
-                  <TabsTrigger value="attendance">Attendance</TabsTrigger>
-                  <TabsTrigger value="donation">Donations</TabsTrigger>
-                  <TabsTrigger value="event">Events</TabsTrigger>
-                  <TabsTrigger value="volunteer">Volunteers</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
+                  <TabsTrigger value="member" className="text-xs sm:text-sm">Members</TabsTrigger>
+                  <TabsTrigger value="attendance" className="text-xs sm:text-sm">Attendance</TabsTrigger>
+                  <TabsTrigger value="donation" className="text-xs sm:text-sm">Donations</TabsTrigger>
+                  <TabsTrigger value="event" className="text-xs sm:text-sm">Events</TabsTrigger>
+                  <TabsTrigger value="volunteer" className="text-xs sm:text-sm">Volunteers</TabsTrigger>
                 </TabsList>
                 
                 {formOptions.map((form) => {
