@@ -199,29 +199,29 @@ export default function Records() {
   return (
     <>
       <Navbar />
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Records Management</h1>
-          <p className="text-muted-foreground">Admin Dashboard - Manage all form submissions</p>
+      <div className="container mx-auto px-4 py-6 pb-20 md:pb-6 space-y-4 md:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Records Management</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Admin Dashboard - Manage all form submissions</p>
         </div>
 
-        <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-            <TabsTrigger value="members" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Members ({memberRegistrations.length})
+        <Tabs defaultValue="members" className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+            <TabsTrigger value="members" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+              <Users className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Members</span> ({memberRegistrations.length})
             </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Events ({events.length})
+            <TabsTrigger value="events" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+              <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Events</span> ({events.length})
             </TabsTrigger>
-            <TabsTrigger value="attendance" className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              Attendance ({attendanceRecords.length})
+            <TabsTrigger value="attendance" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+              <UserCheck className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Attendance</span> ({attendanceRecords.length})
             </TabsTrigger>
-            <TabsTrigger value="contributions" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Donations ({donationRecords.length})
+            <TabsTrigger value="contributions" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+              <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Donations</span> ({donationRecords.length})
             </TabsTrigger>
           </TabsList>
 
