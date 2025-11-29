@@ -51,8 +51,7 @@ export const ConversationList = ({
   const filteredMembers = members.filter(m => 
     m.id !== currentUserId &&
     (m.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     m.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     m.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+     m.last_name?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleStartConversation = (memberId: string) => {

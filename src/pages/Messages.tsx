@@ -103,36 +103,23 @@ export default function Messages() {
   };
 
   const fetchMembers = async () => {
-    // Try to fetch from `profiles` (canonical auth profiles), fall back to `member_registrations`.
-    try {
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name, email');
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('user_id, first_name, last_name');
 
-      if (!profilesError && profiles && profiles.length > 0) {
-        // map user_id -> id to match expected shape
-        setMembers(
-          profiles.map((p: any) => ({
+    if (!profilesError && profiles) {
+      setMembers(
+        profiles
+          .filter(p => p.user_id !== currentUserId)
+          .map((p: any) => ({
             id: p.user_id,
-            first_name: p.first_name,
-            last_name: p.last_name,
-            email: p.email,
+            first_name: p.first_name || 'Unknown',
+            last_name: p.last_name || 'User',
+            email: '',
           }))
-        );
-        return;
-      }
-      // fallback to member_registrations
-      const { data, error } = await supabase
-        .from('member_registrations')
-        .select('id, first_name, last_name, email');
-
-      if (error) {
-        console.error('Error fetching members from member_registrations:', error);
-        return;
-      }
-      if (data) setMembers(data as any);
-    } catch (err) {
-      console.error('Unexpected error fetching members:', err);
+      );
+    } else {
+      console.error('Error fetching members:', profilesError);
     }
   };
 
@@ -258,24 +245,22 @@ export default function Messages() {
 
   const startNewConversation = async (memberId: string) => {
     if (!currentUserId) return;
-     // Check if a conversation already exists
-    // Try to find an existing conversation between the two users.
-    // Use a correct `.or()` filter and `maybeSingle()` so no-row is not treated as an error.
-    const { data: existingConversation, error: existingError } = await supabase
+    
+    // Check if a conversation already exists
+    const { data: existingConversations, error: existingError } = await supabase
       .from('conversations')
       .select('id')
-      .or(`(participant_1.eq.${currentUserId},participant_2.eq.${memberId}),(participant_1.eq.${memberId},participant_2.eq.${currentUserId})`)
-      .maybeSingle();
+      .or(`and(participant_1.eq.${currentUserId},participant_2.eq.${memberId}),and(participant_1.eq.${memberId},participant_2.eq.${currentUserId})`);
 
     if (existingError) {
       console.error('Error checking for existing conversation', existingError);
       return;
     }
 
-    if (existingConversation) {
-      setSelectedConversation(existingConversation.id);
-      // ensure messages are loaded for the selected conversation
-      try { await fetchMessages(existingConversation.id); } catch (e) { /* ignore */ }
+    if (existingConversations && existingConversations.length > 0) {
+      setSelectedConversation(existingConversations[0].id);
+      await fetchMessages(existingConversations[0].id);
+      if (isMobile) setViewMode('chat');
       return;
     }
 
@@ -310,7 +295,8 @@ export default function Messages() {
     if (data) {
       await fetchConversations(currentUserId);
       setSelectedConversation(data.id);
-      try { await fetchMessages(data.id); } catch (e) { /* ignore */ }
+      await fetchMessages(data.id);
+      if (isMobile) setViewMode('chat');
     }
   };
 
