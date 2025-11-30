@@ -117,6 +117,13 @@ export function QuickActions() {
       icon: Heart,
       href: '/prayer-requests',
       color: 'bg-red-500'
+    },
+    {
+      title: 'Settings',
+      description: 'Manage your preferences and notifications',
+      icon: Settings,
+      href: '/settings',
+      color: 'bg-gray-500'
     }
   ];
 
@@ -162,6 +169,13 @@ export function QuickActions() {
       icon: Calendar,
       href: '/dashboard#events',
       color: 'bg-indigo-500'
+    },
+    {
+      title: 'Settings',
+      description: 'Manage your preferences and notifications',
+      icon: Settings,
+      href: '/settings',
+      color: 'bg-gray-500'
     }
   ];
 

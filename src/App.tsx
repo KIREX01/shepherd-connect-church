@@ -16,6 +16,7 @@ import PrayerRequests from "./pages/PrayerRequests";
 import NotFound from "./pages/NotFound";
 import Messages from "./pages/Messages";
 import Tasks from "./pages/Tasks";
+import Settings from "./pages/Settings";
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import ChurchFinances from './pages/ChurchFinances';
 import Tithes from './pages/Tithes';
@@ -130,6 +131,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <QuickActions />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 } 
               />
