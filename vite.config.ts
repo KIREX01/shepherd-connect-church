@@ -7,6 +7,9 @@ import { VitePWA } from "vite-plugin-pwa";
 const manifestForPlugin = {
   registerType: "prompt" as const,
   includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+  strategies: 'injectManifest' as const,
+  srcDir: 'public',
+  filename: 'sw.js',
   workbox: {
     globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
     runtimeCaching: [

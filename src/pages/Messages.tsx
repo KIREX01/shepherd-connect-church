@@ -240,6 +240,20 @@ export default function Messages() {
       if (activeChannelRef.current && currentUserId) {
         try { activeChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUserId, typing: false } }); } catch (e) { /* ignore */ }
       }
+
+      // Send push notification to recipient
+      const conversation = conversations.find(c => c.id === selectedConversation);
+      if (conversation) {
+        const recipientId = conversation.other_user.id;
+        const senderName = 'Someone'; // You might want to fetch the sender's name from profiles
+        
+        // Import dynamically to avoid issues
+        import('@/utils/notifications').then(({ notifyNewMessage }) => {
+          notifyNewMessage(recipientId, senderName).catch(err => 
+            console.error('Failed to send push notification:', err)
+          );
+        });
+      }
     }
   };
 

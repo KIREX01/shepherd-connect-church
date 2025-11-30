@@ -7,6 +7,7 @@ import { EventRegistration } from '@/components/EventRegistration';
 import { AnnouncementsList } from '@/components/AnnouncementsList';
 import { TithesSummary } from '@/components/TithesSummary';
 import { MemberAttendanceSummary } from '@/components/MemberAttendanceSummary';
+import { NotificationSettings } from '@/components/NotificationSettings';
 import { Calendar, Megaphone, Users, Heart, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -85,6 +86,7 @@ export default function Dashboard() {
             </Tabs>
           </div>
           <div className="space-y-6">
+            <NotificationSettings />
             <TithesSummary />
             <MemberAttendanceSummary />
           </div>
