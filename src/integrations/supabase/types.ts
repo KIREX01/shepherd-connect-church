@@ -488,6 +488,39 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          announcements_enabled: boolean
+          created_at: string
+          events_enabled: boolean
+          id: string
+          messages_enabled: boolean
+          prayer_requests_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          announcements_enabled?: boolean
+          created_at?: string
+          events_enabled?: boolean
+          id?: string
+          messages_enabled?: boolean
+          prayer_requests_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          announcements_enabled?: boolean
+          created_at?: string
+          events_enabled?: boolean
+          id?: string
+          messages_enabled?: boolean
+          prayer_requests_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       prayer_requests: {
         Row: {
           category: string
@@ -608,6 +641,36 @@ export type Database = {
           last_name?: string | null
           membership_date?: string | null
           phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
           updated_at?: string
           user_id?: string
         }
