@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Church, Users, Calendar, DollarSign, BarChart3, Heart, Megaphone } from 'lucide-react';
+import { Church, Users, Calendar, DollarSign, BarChart3, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export default function Index() {
   const { userRole } = useAuth();
@@ -53,26 +54,49 @@ export default function Index() {
     enabled: userRole === 'admin' || userRole === 'pastor',
   });
 
-  // Fetch upcoming events count (this week)
-  const { data: upcomingEvents = 0 } = useQuery({
+  // Fetch upcoming events count (this week) with real-time updates
+  const { data: upcomingEvents = 0, refetch: refetchEvents } = useQuery({
     queryKey: ['upcoming-events'],
     queryFn: async () => {
-      const today = new Date();
-      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('events')
-        .select('*', { count: 'exact', head: true })
-        .gte('event_date', today.toISOString())
+        .select('id')
+        .gte('event_date', now.toISOString())
         .lte('event_date', nextWeek.toISOString());
 
       if (error) {
         console.error('Error fetching upcoming events:', error);
         return 0;
       }
-      return count || 0;
+      
+      return data?.length || 0;
     },
   });
+
+  // Set up real-time subscription for events
+  useEffect(() => {
+    const channel = supabase
+      .channel('events-index-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events'
+        },
+        () => {
+          refetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetchEvents]);
 
   // Fetch attendance rate for this month
   const { data: attendanceRate = 0 } = useQuery({

@@ -1,113 +1,48 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, DollarSign, FileText, LogOut, Home, Database, MessageCircle, ChevronDown, UserCheck, Menu, ClipboardList, Settings } from 'lucide-react';
+import { Church, Users, DollarSign, FileText, LogOut, Home, Database, MessageCircle, ChevronDown, UserCheck, Menu, ClipboardList, Settings, Heart, Calendar } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export function Navbar() {
   const { user, signOut, userRole } = useAuth();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const themeMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
-        setThemeMenuOpen(false);
-      }
-    }
-    if (themeMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [themeMenuOpen]);
 
   const handleSignOut = async () => {
     await signOut();
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const isActiveGroup = (paths: string[]) => paths.some(path => location.pathname === path);
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
 
-  const navigationItems = [
-    {
-      href: '/',
-      label: 'Dashboard',
-      icon: Home,
-      show: true
-    },
-    {
-      href: '/messages',
-      label: 'Messages',
-      icon: MessageCircle,
-      show: true
-    },
-    {
-      href: '/tasks',
-      label: 'Tasks',
-      icon: ClipboardList,
-      show: true
-    },
-    {
-      href: '/forms',
-      label: 'Forms',
-      icon: FileText,
-      show: true
-    },
-    {
-      href: '/member-attendance',
-      label: 'Attendance',
-      icon: UserCheck,
-      show: true
-    },
-    {
-      href: '/tithes',
-      label: 'Tithes',
-      icon: DollarSign,
-      show: userRole !== 'admin'
-    },
-    {
-      href: '/members',
-      label: 'Members',
-      icon: Users,
-      show: userRole === 'admin' || userRole === 'pastor'
-    },
-    {
-      href: '/records',
-      label: 'Records',
-      icon: Database,
-      show: userRole === 'admin'
-    },
-    {
-      href: '/settings',
-      label: 'Settings',
-      icon: Settings,
-      show: true
-    }
+  // Grouped navigation items for dropdowns
+  const managementItems = [
+    { href: '/tasks', label: 'Tasks', icon: ClipboardList },
+    { href: '/forms', label: 'Forms', icon: FileText },
+    { href: '/member-attendance', label: 'Attendance', icon: UserCheck },
   ];
 
-  const adminFinanceItems = [
-    {
-      href: '/tithes',
-      label: 'Tithes',
-      icon: DollarSign
-    },
-    {
-      href: '/finances',
-      label: 'Church Finances',
-      icon: Database
-    }
+  const communityItems = [
+    { href: '/messages', label: 'Messages', icon: MessageCircle },
+    { href: '/prayer-requests', label: 'Prayer Requests', icon: Heart },
+    { href: '/dashboard', label: 'Events & Announcements', icon: Calendar },
+  ];
+
+  const adminItems = [
+    { href: '/members', label: 'Members', icon: Users },
+    { href: '/records', label: 'Records', icon: Database },
+    { href: '/tithes', label: 'Tithes', icon: DollarSign },
+    { href: '/finances', label: 'Church Finances', icon: Database },
   ];
 
   return (
@@ -129,72 +64,146 @@ export function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-6">
-            <div className="flex items-center space-x-4">
-              {navigationItems.filter(item => item.show).map((item) => (
-                <Link key={item.href} to={item.href}>
+          <div className="hidden lg:flex items-center space-x-2">
+            {/* Dashboard - Always visible */}
+            <Link to="/">
+              <Button 
+                variant={isActive('/') ? 'default' : 'ghost'} 
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <Home className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Button>
+            </Link>
+
+            {/* Community Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant={isActiveGroup(['/messages', '/prayer-requests', '/dashboard']) ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Community</span>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-popover border z-50">
+                {communityItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link to={item.href} className="flex items-center space-x-2 w-full">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Management Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant={isActiveGroup(['/tasks', '/forms', '/member-attendance']) ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  <span>Management</span>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-popover border z-50">
+                {managementItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link to={item.href} className="flex items-center space-x-2 w-full">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Admin Dropdown - Only for admin/pastor */}
+            {(userRole === 'admin' || userRole === 'pastor') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button 
-                    variant={isActive(item.href) ? 'default' : 'ghost'} 
+                    variant={isActiveGroup(['/members', '/records', '/tithes', '/finances']) ? 'default' : 'ghost'} 
                     size="sm"
                     className="flex items-center space-x-2"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <Database className="h-4 w-4" />
+                    <span>Admin</span>
+                    <ChevronDown className="h-3 w-3" />
                   </Button>
-                </Link>
-              ))}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-popover border z-50">
+                  {adminItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link to={item.href} className="flex items-center space-x-2 w-full">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
-              {userRole === 'admin' && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant={isActive('/tithes') || isActive('/finances') ? 'default' : 'ghost'} 
-                      size="sm"
-                      className="flex items-center space-x-2"
-                    >
-                      <DollarSign className="h-4 w-4" />
-                      <span>Finance</span>
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {adminFinanceItems.map((item) => (
-                      <DropdownMenuItem key={item.href} asChild>
-                        <Link to={item.href} className="flex items-center space-x-2">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+            {/* Tithes for non-admin users */}
+            {userRole === 'member' && (
+              <Link to="/tithes">
+                <Button 
+                  variant={isActive('/tithes') ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  <span>Tithes</span>
+                </Button>
+              </Link>
+            )}
 
-            <div className="flex items-center space-x-4">
+            {/* Settings */}
+            <Link to="/settings">
+              <Button 
+                variant={isActive('/settings') ? 'default' : 'ghost'} 
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </Button>
+            </Link>
+
+            <div className="flex items-center space-x-3 ml-4 pl-4 border-l">
               <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">
                 {userRole}
               </span>
               
               {/* Theme Switcher */}
-              <div className="relative" ref={themeMenuRef}>
-                <Button variant="outline" size="icon" className="mr-2" tabIndex={0} aria-label="Theme switcher" onClick={() => setThemeMenuOpen((v) => !v)}>
-                  {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
-                </Button>
-                {themeMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-card border rounded shadow-lg z-50">
-                    <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'light' ? 'font-bold' : ''}`} onClick={() => { setTheme('light'); setThemeMenuOpen(false); }}>
-                      <Sun className="h-4 w-4 mr-2" /> Light
-                    </button>
-                    <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'dark' ? 'font-bold' : ''}`} onClick={() => { setTheme('dark'); setThemeMenuOpen(false); }}>
-                      <Moon className="h-4 w-4 mr-2" /> Dark
-                    </button>
-                    <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'system' ? 'font-bold' : ''}`} onClick={() => { setTheme('system'); setThemeMenuOpen(false); }}>
-                      <Monitor className="h-4 w-4 mr-2" /> System
-                    </button>
-                  </div>
-                )}
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover border z-50">
+                  <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center">
+                    <Sun className="h-4 w-4 mr-2" /> Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center">
+                    <Moon className="h-4 w-4 mr-2" /> Dark
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme('system')} className="flex items-center">
+                    <Monitor className="h-4 w-4 mr-2" /> System
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
               <Button variant="outline" onClick={handleSignOut} size="sm">
                 <LogOut className="h-4 w-4 mr-2" />
@@ -205,36 +214,29 @@ export function Navbar() {
 
           {/* Mobile Navigation */}
           <div className="lg:hidden flex items-center space-x-3">
-            {/* User Info - Always Visible */}
-            <div className="flex items-center space-x-2">
-              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full capitalize">
-                {userRole}
-              </span>
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                {user?.user_metadata?.first_name || user?.email}
-              </span>
-            </div>
+            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full capitalize">
+              {userRole}
+            </span>
 
             {/* Theme Switcher */}
-            <div className="relative" ref={themeMenuRef}>
-              <Button variant="outline" size="icon" className="h-8 w-8" tabIndex={0} aria-label="Theme switcher" onClick={() => setThemeMenuOpen((v) => !v)}>
-                {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
-              </Button>
-              {themeMenuOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-card border rounded shadow-lg z-50">
-                  <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'light' ? 'font-bold' : ''}`} onClick={() => { setTheme('light'); setThemeMenuOpen(false); }}>
-                    <Sun className="h-4 w-4 mr-2" /> Light
-                  </button>
-                  <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'dark' ? 'font-bold' : ''}`} onClick={() => { setTheme('dark'); setThemeMenuOpen(false); }}>
-                    <Moon className="h-4 w-4 mr-2" /> Dark
-                  </button>
-                  <button className={`w-full flex items-center px-3 py-2 text-sm hover:bg-muted ${theme === 'system' ? 'font-bold' : ''}`} onClick={() => { setTheme('system'); setThemeMenuOpen(false); }}>
-                    <Monitor className="h-4 w-4 mr-2" /> System
-                  </button>
-                </div>
-              )}
-              
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8">
+                  {theme === 'dark' ? <Moon className="h-4 w-4" /> : theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover border z-50">
+                <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center">
+                  <Sun className="h-4 w-4 mr-2" /> Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center">
+                  <Moon className="h-4 w-4 mr-2" /> Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')} className="flex items-center">
+                  <Monitor className="h-4 w-4 mr-2" /> System
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Hamburger Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -252,20 +254,29 @@ export function Navbar() {
                 </SheetHeader>
                 
                 <div className="mt-6 space-y-4">
-                  {/* User Info in Mobile Menu */}
+                  {/* User Info */}
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="font-medium text-sm">Welcome, {user?.user_metadata?.first_name || user?.email}</p>
                     <p className="text-xs text-muted-foreground capitalize">Role: {userRole}</p>
                   </div>
-                  <Button variant="outline" onClick={handleSignOut} size="sm">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
 
-                  {/* Navigation Links */}
+                  {/* Main Navigation */}
                   <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground px-2">Main Navigation</h3>
-                    {navigationItems.filter(item => item.show).map((item) => (
+                    <Link to="/" onClick={closeMobileMenu}>
+                      <Button 
+                        variant={isActive('/') ? 'default' : 'ghost'} 
+                        className="w-full justify-start"
+                      >
+                        <Home className="h-4 w-4 mr-3" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                  </div>
+
+                  {/* Community Section */}
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground px-2">Community</h3>
+                    {communityItems.map((item) => (
                       <Link key={item.href} to={item.href} onClick={closeMobileMenu}>
                         <Button 
                           variant={isActive(item.href) ? 'default' : 'ghost'} 
@@ -278,11 +289,27 @@ export function Navbar() {
                     ))}
                   </div>
 
-                  {/* Admin Finance Section */}
-                  {userRole === 'admin' && (
+                  {/* Management Section */}
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground px-2">Management</h3>
+                    {managementItems.map((item) => (
+                      <Link key={item.href} to={item.href} onClick={closeMobileMenu}>
+                        <Button 
+                          variant={isActive(item.href) ? 'default' : 'ghost'} 
+                          className="w-full justify-start"
+                        >
+                          <item.icon className="h-4 w-4 mr-3" />
+                          {item.label}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+
+                  {/* Admin Section */}
+                  {(userRole === 'admin' || userRole === 'pastor') && (
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium text-muted-foreground px-2">Finance</h3>
-                      {adminFinanceItems.map((item) => (
+                      <h3 className="text-sm font-medium text-muted-foreground px-2">Admin</h3>
+                      {adminItems.map((item) => (
                         <Link key={item.href} to={item.href} onClick={closeMobileMenu}>
                           <Button 
                             variant={isActive(item.href) ? 'default' : 'ghost'} 
@@ -295,6 +322,42 @@ export function Navbar() {
                       ))}
                     </div>
                   )}
+
+                  {/* Tithes for non-admin */}
+                  {userRole === 'member' && (
+                    <div className="space-y-2">
+                      <Link to="/tithes" onClick={closeMobileMenu}>
+                        <Button 
+                          variant={isActive('/tithes') ? 'default' : 'ghost'} 
+                          className="w-full justify-start"
+                        >
+                          <DollarSign className="h-4 w-4 mr-3" />
+                          Tithes
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Settings */}
+                  <div className="space-y-2">
+                    <Link to="/settings" onClick={closeMobileMenu}>
+                      <Button 
+                        variant={isActive('/settings') ? 'default' : 'ghost'} 
+                        className="w-full justify-start"
+                      >
+                        <Settings className="h-4 w-4 mr-3" />
+                        Settings
+                      </Button>
+                    </Link>
+                  </div>
+
+                  {/* Sign Out */}
+                  <div className="pt-4 border-t">
+                    <Button variant="outline" onClick={handleSignOut} className="w-full">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>  
             </Sheet>
