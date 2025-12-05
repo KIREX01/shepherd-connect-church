@@ -1,4 +1,17 @@
-// Service Worker for Push Notifications
+// Workbox manifest injection point - required for vite-plugin-pwa
+const manifest = self.__WB_MANIFEST;
+
+// Service Worker for Push Notifications and Offline Support
+self.addEventListener('install', (event) => {
+  console.log('Service Worker installed');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker activated');
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
   
