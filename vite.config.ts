@@ -7,9 +7,7 @@ import { VitePWA } from "vite-plugin-pwa";
 const manifestForPlugin = {
   registerType: "prompt" as const,
   includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
-  strategies: 'injectManifest' as const,
-  srcDir: 'public',
-  filename: 'sw.js',
+  strategies: 'generateSW' as const,
   workbox: {
     globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
     runtimeCaching: [
@@ -20,7 +18,7 @@ const manifestForPlugin = {
           cacheName: 'google-fonts-cache',
           expiration: {
             maxEntries: 10,
-            maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+            maxAgeSeconds: 60 * 60 * 24 * 365
           },
           cacheableResponse: {
             statuses: [0, 200]
@@ -34,7 +32,7 @@ const manifestForPlugin = {
           cacheName: 'supabase-cache',
           expiration: {
             maxEntries: 50,
-            maxAgeSeconds: 60 * 5 // 5 minutes
+            maxAgeSeconds: 60 * 5
           },
           networkTimeoutSeconds: 10
         }
@@ -46,7 +44,7 @@ const manifestForPlugin = {
           cacheName: 'images-cache',
           expiration: {
             maxEntries: 60,
-            maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+            maxAgeSeconds: 60 * 60 * 24 * 30
           }
         }
       }

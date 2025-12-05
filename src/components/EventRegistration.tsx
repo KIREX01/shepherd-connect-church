@@ -33,10 +33,6 @@ export function EventRegistration() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   const fetchEvents = async () => {
     try {
       const { data, error } = await supabase
@@ -47,11 +43,43 @@ export function EventRegistration() {
 
       if (error) throw error;
 
-      // Process the data to check if user is registered
+      // Get registration counts and user registrations separately
+      const eventIds = data?.map(e => e.id) || [];
+      
+      let registrationCounts: Record<string, number> = {};
+      let userRegistrations: Set<string> = new Set();
+
+      if (eventIds.length > 0) {
+        // Get registration counts
+        const { data: regData } = await supabase
+          .from('event_registrations')
+          .select('event_id')
+          .in('event_id', eventIds);
+
+        if (regData) {
+          regData.forEach(reg => {
+            registrationCounts[reg.event_id] = (registrationCounts[reg.event_id] || 0) + 1;
+          });
+        }
+
+        // Get user's registrations
+        if (user) {
+          const { data: userRegData } = await supabase
+            .from('event_registrations')
+            .select('event_id')
+            .in('event_id', eventIds)
+            .eq('user_id', user.id);
+
+          if (userRegData) {
+            userRegData.forEach(reg => userRegistrations.add(reg.event_id));
+          }
+        }
+      }
+
       const processedEvents = data?.map((event: any) => ({
         ...event,
-        registrations_count: event.registrations_count?.[0]?.count || 0,
-        user_registered: event.user_registered?.some((reg: any) => reg.user_id === user?.id) || false
+        registrations_count: registrationCounts[event.id] || 0,
+        user_registered: userRegistrations.has(event.id)
       })) || [];
 
       setEvents(processedEvents);
@@ -67,6 +95,31 @@ export function EventRegistration() {
     }
   };
 
+  useEffect(() => {
+    fetchEvents();
+
+    // Set up real-time subscription for events table
+    const channel = supabase
+      .channel('events-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events'
+        },
+        (payload) => {
+          console.log('Events table changed:', payload);
+          fetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const handleRegister = async (eventId: string) => {
     if (!user) {
       toast({
@@ -78,7 +131,7 @@ export function EventRegistration() {
     }
 
     try {
-      const { error } = await (supabase as any).from('event_registrations').insert([
+      const { error } = await supabase.from('event_registrations').insert([
         {
           event_id: eventId,
           user_id: user.id,
@@ -94,7 +147,6 @@ export function EventRegistration() {
         description: 'You have been registered for this event',
       });
 
-      // Refresh events to update registration status
       fetchEvents();
     } catch (error) {
       console.error('Error registering for event:', error);
@@ -108,7 +160,7 @@ export function EventRegistration() {
 
   const handleUnregister = async (eventId: string) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('event_registrations')
         .delete()
         .eq('event_id', eventId)
@@ -121,7 +173,6 @@ export function EventRegistration() {
         description: 'You have been unregistered from this event',
       });
 
-      // Refresh events to update registration status
       fetchEvents();
     } catch (error) {
       console.error('Error unregistering from event:', error);
@@ -224,9 +275,9 @@ export function EventRegistration() {
                       <Button
                         size="sm"
                         onClick={() => handleRegister(event.id)}
-                        disabled={event.max_attendees && event.registrations_count >= event.max_attendees}
+                        disabled={event.max_attendees !== null && event.registrations_count >= event.max_attendees}
                       >
-                        {event.max_attendees && event.registrations_count >= event.max_attendees 
+                        {event.max_attendees !== null && event.registrations_count >= event.max_attendees 
                           ? 'Event Full' 
                           : 'Register'
                         }
