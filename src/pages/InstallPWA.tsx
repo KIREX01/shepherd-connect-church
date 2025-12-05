@@ -81,12 +81,15 @@ const InstallPWA = () => {
           )}
         </div>
 
-        {deferredPrompt && (
-          <Button onClick={handleInstallClick} size="lg" className="gap-2">
-            <Download className="h-4 w-4" />
-            Install Now
-          </Button>
-        )}
+        <Button 
+          onClick={handleInstallClick} 
+          size="lg" 
+          className="gap-2"
+          disabled={isInstalled || !deferredPrompt}
+        >
+          <Download className="h-4 w-4" />
+          {isInstalled ? 'Installed' : 'Install Now'}
+        </Button>
       </div>
 
       <Card>
@@ -110,6 +113,18 @@ const InstallPWA = () => {
           <p>2. Tap the Share button (square with an arrow pointing upwards) in the bottom center.</p>
           <p>3. Scroll down and select &quot;Add to Home Screen&quot;.</p>
           <p>4. Tap &quot;Add&quot; in the top right corner.</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>On Desktop (Chrome, Edge)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>1. Open Shepherd Connect in a supported browser (like Chrome or Edge).</p>
+          <p>2. Look for an install icon in the address bar (usually a screen with a down arrow).</p>
+          <p>3. Click the icon and then click &quot;Install&quot; in the confirmation pop-up.</p>
+          <p>4. The app will be added to your desktop and can be launched like any other application.</p>
         </CardContent>
       </Card>
 

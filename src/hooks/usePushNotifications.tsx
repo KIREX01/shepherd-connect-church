@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 const getVapidPublicKey = async (): Promise<string> => {
   // In production, fetch this from your backend/config
   // For now, return a placeholder that users will need to replace
-  return 'BEL_YOUR_VAPID_PUBLIC_KEY_HERE';
+  return 'BEil174RGV48e36DA02JewYx5dWxxOLTfFIZtu7eeQm_kxFdwnUjanU9RzatzzyE_M-aOMXhHjK2XboSmjXTUw8';
 };
 
 interface PushSubscriptionState {

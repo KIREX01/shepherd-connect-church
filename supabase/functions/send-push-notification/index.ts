@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from 'std/http/server';
+import * as webPush from 'web-push';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -172,5 +172,42 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+  }
+});
+// Read VAPID keys from environment
+const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') || '';
+const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || '';
+
+if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+  console.warn('VAPID keys not set in environment');
+}
+
+webPush.setVapidDetails('mailto:admin@yourchurch.org', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+serve(async (req: Request) => {
+  try {
+    const body = await req.json();
+    // Expected body: { subscriptions: [ { endpoint, keys: { p256dh, auth } } ], payload }
+    const { subscriptions, payload } = body;
+
+    if (!Array.isArray(subscriptions) || !payload) {
+      return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 });
+    }
+
+    const results = [];
+    for (const sub of subscriptions) {
+      try {
+        await webPush.sendNotification(sub as any, JSON.stringify(payload));
+        results.push({ endpoint: sub.endpoint, status: 'ok' });
+      } catch (err) {
+        console.error('sendNotification error', err);
+        results.push({ endpoint: sub.endpoint, status: 'error', error: err.message });
+      }
+    }
+
+    return new Response(JSON.stringify({ results }), { status: 200 });
+  } catch (err) {
+    console.error('Function error', err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 });
