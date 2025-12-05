@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Church, Users, Calendar, DollarSign, FileText, LogOut, Home, Database, MessageCircle, ChevronDown, UserCheck, Menu, X, ClipboardList } from 'lucide-react';
+import { Church, Users, DollarSign, FileText, LogOut, Home, Database, MessageCircle, ChevronDown, UserCheck, Menu, ClipboardList, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Sun, Moon, Monitor } from 'lucide-react';
@@ -88,6 +88,12 @@ export function Navbar() {
       label: 'Records',
       icon: Database,
       show: userRole === 'admin'
+    },
+    {
+      href: '/settings',
+      label: 'Settings',
+      icon: Settings,
+      show: true
     }
   ];
 
