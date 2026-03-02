@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Users, Calendar, UserCheck, DollarSign, Heart, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { Navbar } from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import type { Tables } from '@/integrations/supabase/types';
 import { RecordEditModal } from '@/components/RecordEditModal';
@@ -197,9 +196,8 @@ export default function Records() {
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="container mx-auto px-4 py-6 pb-20 md:pb-6 space-y-4 md:space-y-6">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <h1 className="text-2xl md:text-3xl font-bold">Records Management</h1>
           <p className="text-sm md:text-base text-muted-foreground">Admin Dashboard - Manage all form submissions</p>
@@ -531,6 +529,6 @@ export default function Records() {
         record={editingRecord}
         onSuccess={handleModalSuccess}
       />
-    </>
+    </div>
   );
 }

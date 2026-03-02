@@ -8,8 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Tables } from "@/integrations/supabase/types";
 
 type Task = Tables<"tasks">;
@@ -100,8 +98,7 @@ const Tasks = () => {
   const completedTasks = tasks.filter((task) => task.status === "completed");
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -232,7 +229,6 @@ const Tasks = () => {
           </CardContent>
         </Card>
       </motion.div>
-      <Footer />
     </div>
   );
 };
