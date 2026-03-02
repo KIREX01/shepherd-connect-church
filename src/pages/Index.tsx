@@ -9,6 +9,7 @@ import { Footer } from '@/components/Footer';
 import { Church, Users, Calendar, DollarSign, BarChart3, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { DailyBibleVerse } from '@/components/DailyBibleVerse';
 
 export default function Index() {
   const { userRole } = useAuth();
@@ -200,6 +201,10 @@ export default function Index() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mb-6">
+          <DailyBibleVerse />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">

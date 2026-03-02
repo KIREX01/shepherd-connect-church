@@ -193,6 +193,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_bible_verses: {
+        Row: {
+          created_at: string
+          id: string
+          posted_by: string
+          reflection: string | null
+          updated_at: string
+          verse_date: string
+          verse_reference: string
+          verse_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          posted_by: string
+          reflection?: string | null
+          updated_at?: string
+          verse_date?: string
+          verse_reference: string
+          verse_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          posted_by?: string
+          reflection?: string | null
+          updated_at?: string
+          verse_date?: string
+          verse_reference?: string
+          verse_text?: string
+        }
+        Relationships: []
+      }
       donation_records: {
         Row: {
           amount: number
