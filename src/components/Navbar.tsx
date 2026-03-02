@@ -35,6 +35,7 @@ export function Navbar() {
   const communityItems = [
     { href: '/messages', label: 'Messages', icon: MessageCircle },
     { href: '/prayer-requests', label: 'Prayer Requests', icon: Heart },
+    { href: '/bible-verses', label: 'Bible Verses', icon: FileText },
     { href: '/dashboard', label: 'Events & Announcements', icon: Calendar },
   ];
 
