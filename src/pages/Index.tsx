@@ -4,11 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { Church, Users, Calendar, DollarSign, BarChart3, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { DailyBibleVerse } from '@/components/DailyBibleVerse';
 
 export default function Index() {
@@ -143,10 +141,9 @@ export default function Index() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <Navbar />
+    <div className="p-4 md:p-8">
 
-      <main className="container mx-auto px-4 py-6 md:py-8">
+      <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -286,8 +283,7 @@ export default function Index() {
             </CardContent>
           </Card>
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

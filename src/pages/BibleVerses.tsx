@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,9 +71,7 @@ export default function BibleVerses() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <Navbar />
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
@@ -195,8 +191,7 @@ export default function BibleVerses() {
             ))}
           </div>
         )}
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

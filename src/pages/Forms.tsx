@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { MemberRegistrationForm } from "@/components/forms/MemberRegistrationForm";
 import { AttendanceEntryForm } from "@/components/forms/AttendanceEntryForm";
 import { DonationEntryForm } from "@/components/forms/DonationEntryForm";
@@ -69,9 +67,8 @@ const Forms = () => {
     if (form) {
       const FormComponent = form.component;
       return (
-        <div className="min-h-screen bg-background pb-20 md:pb-0">
-          <Navbar />
-          <div className="max-w-4xl mx-auto px-4 py-6 md:p-8">
+        <div className="p-4 md:p-8">
+          <div className="max-w-4xl mx-auto">
             <Button
               variant="ghost"
               onClick={() => setSelectedForm(null)}
@@ -82,16 +79,14 @@ const Forms = () => {
             </Button>
             <FormComponent />
           </div>
-          <Footer />
         </div>
       );
     }
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-6 md:p-8">
+    <div className="p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Church Data Entry Forms</h1>
           <p className="text-base md:text-xl text-muted-foreground">
@@ -158,7 +153,6 @@ const Forms = () => {
         {/* Only show to admins */}
         <AdminAnnouncementForm />
       </div>
-      <Footer />
     </div>
   );
 };
