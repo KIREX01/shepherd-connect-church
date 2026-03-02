@@ -24,6 +24,7 @@ import MemberAttendance from './pages/MemberAttendance';
 import { QuickActions } from "@/components/QuickActions";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import InstallPWA from "./pages/InstallPWA";
+import BibleVerses from "./pages/BibleVerses";
 
 const queryClient = new QueryClient();
 
@@ -139,6 +140,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/bible-verses" 
+                element={
+                  <ProtectedRoute>
+                    <BibleVerses />
                   </ProtectedRoute>
                 } 
               />
