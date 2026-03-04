@@ -133,6 +133,39 @@ export type Database = {
         }
         Relationships: []
       }
+      church_finances: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          recorded_by: string | null
+          type: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          recorded_by?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          recorded_by?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       contributions: {
         Row: {
           amount: number

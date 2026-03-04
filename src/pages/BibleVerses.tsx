@@ -191,7 +191,6 @@ export default function BibleVerses() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }
